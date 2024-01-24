@@ -5,7 +5,7 @@ import Footer from './Footer';
 
 function App() {
   const handleClick = () => {
-    fetch('/api/some-endpoint')
+    fetch('/')
   .then(response => response.text())
   .then(text => console.log(text))
   .catch(error => console.error(error));
