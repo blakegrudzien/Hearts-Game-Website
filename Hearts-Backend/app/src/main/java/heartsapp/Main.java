@@ -28,12 +28,12 @@ public class Main {
     }
 
 //Plays the game
-   /* public static void Play_Hearts(Player p1, Player p2, Player p3, Player p4){
+    public static void Play_Hearts(Player p1, Player p2, Player p3, Player p4){
 
         Card[] deck = new Card[52];
 
         int round_number = 0;
-        boolean game_over = false;
+        
         print_scoreboard(round_number, p1, p2, p3, p4);
         while(p1.total<100 && p2.total<100 && p3.total<100 && p4.total<100){
             make_deck(deck);
@@ -47,7 +47,7 @@ public class Main {
 
         System.out.println("The game is over!!");
 
-    }*/
+    }
 
 
 //plays a hand of hearts
@@ -264,7 +264,7 @@ public class Main {
             key = hand[i];
             j = i - 1;
 
-            while (j >= 0 && hand[j].order > key.order) {
+            while (j >= 0 && hand[j].Card_Number > key.Card_Number) {
                 hand[j + 1] = hand[j];
                 j = j - 1;
             }
@@ -419,6 +419,7 @@ public class Main {
 //Initializes the deck of cards
     public static void make_deck(Card[] deck){
         HashMap<Integer, String> key = make_key();
+        
         for(int i =13;i<17;i++){
             for(int j =0; j<13; j++){
                 StringBuilder sig = new StringBuilder();

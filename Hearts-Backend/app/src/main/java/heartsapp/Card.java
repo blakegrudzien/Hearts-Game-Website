@@ -9,8 +9,10 @@ public class Card {
     StringBuilder signature;
     Player Holder;  //Which player has the card
     int point_value; //The point value of the card (Hearts are all one, and the Queen of Spades is 13)
-    int order;
+    int Card_Number;
     boolean played;
+    String imageURL;
+    char suit_char;
 
 
 
@@ -19,6 +21,7 @@ public class Card {
     public Card(){
         this.val = 0;
         this.suit = 0;
+        imageURL = null;
 
     }
 
@@ -27,18 +30,73 @@ public class Card {
         this.val = v;
         this.suit = s;
         this.point_value = p;
-        this.order = s*13 + v;
-        played = false;
+        this.Card_Number= s*13 + v;
+        if(s == 13){
+            this.suit_char = 'c';
+        }
+        else if(s == 14){
+            this.suit_char = 's';
+        }
+        else if(s == 15){
+            this.suit_char = 'd';
+        }
+        else if(s == 16){
+            this.suit_char = 'h';
 
+        }
+
+        
+        played = false;
+        if(this.val<10){
+            imageURL = "/images/Cards/Modern/" + this.suit_char + "0" + this.val + ".jpg";
+        }
+        else if(this.val == 14){
+            imageURL = "/images/Cards/Modern/" + this.suit_char + "01.jpg";
+            
+        }
+        else{
+            imageURL = "/images/Cards/Modern/" + this.suit_char + this.val + ".jpg";
+        }
+        
+        
     }
+
+
+
+
+    
 
 //constructor
     public Card(int v, int s, int p, StringBuilder signature){
         this.val = v;
         this.suit = s;
         this.point_value = p;
-        this.order = s*13 + v;
+        this.Card_Number = s*13 + v;
         this.signature = signature;
+        imageURL = null;
+        if(s == 13){
+            this.suit_char = 'c';
+        }
+        else if(s == 14){
+            this.suit_char = 's';
+        }
+        else if(s == 15){
+            this.suit_char = 'd';
+        }
+        else if(s == 16){
+            this.suit_char = 'h';
+
+        }
+        if(this.val<10){
+            imageURL = "/images/Cards/Modern/" + this.suit_char + "0" + this.val + ".jpg";
+        }
+        else if(this.val == 14){
+            imageURL = "/images/Cards/Modern/" + this.suit_char + "01.jpg";
+        }
+        else{
+            imageURL = "/images/Cards/Modern/" + this.suit_char + this.val + ".jpg";
+        }
+        
 
     }
 

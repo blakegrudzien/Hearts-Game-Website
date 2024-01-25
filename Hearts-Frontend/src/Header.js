@@ -1,11 +1,14 @@
+import './index.css';
+
 const Header = () => {
   const headerStyle = {
     backgroundColor: 'royalblue',
-    color: '#fff'
+    color: '#fff',
+    marginRight: 50
   };
   return (
-    <header style = {headerStyle}>
-      <h1>Play Hearts</h1>
+    <header className = "Title">
+      <h1>Hearts Card Game</h1>
 
 
     </header>

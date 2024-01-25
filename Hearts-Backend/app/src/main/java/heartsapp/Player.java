@@ -1,4 +1,6 @@
 package heartsapp;
+import java.util.Arrays;
+
 public class Player {
 int total;
 String name;
@@ -109,6 +111,53 @@ Player(String n){
         return Hearts_broken;
     }
 
+
+    public String[] getImageUrls() {
+        // Initialize an array with the URLs
+        String[] imageUrls = new String[13];
+    
+        // Fill the array with URLs
+        for (int i = 0; i < 13; i++) {
+            Card Cur = this.hand[i];
+            if (Cur.val < 10) {
+                imageUrls[i] = "/images/Cards/Modern/" + Cur.suit_char + "0" + Cur.val + ".jpg";
+            } else if (Cur.val == 14){
+
+                imageUrls[i] = "/images/Cards/Modern/" + Cur.suit_char + "01.jpg";
+ 
+            }
+            else{
+                imageUrls[i] = "/images/Cards/Modern/" + Cur.suit_char + Cur.val + ".jpg";
+
+            }
+        }
+    
+        return imageUrls;
+    }
+
+    public void Sort_Hand(){
+        int i, j;
+        Card key;
+        
+        for (i = 1; i < 13; i++) {
+            key = this.hand[i];
+            j = i - 1;
+ 
+        // Move elements of arr[0..i-1],
+        // that are greater than key, 
+        // to one position ahead of their
+        // current position
+        while (j >= 0 && this.hand[j].Card_Number > key.Card_Number) {
+            this.hand[j + 1] = this.hand[j];
+            j = j - 1;
+        }
+        this.hand[j + 1] = key;
+    }
+        
+    }
+
 }
+
+
 
 
