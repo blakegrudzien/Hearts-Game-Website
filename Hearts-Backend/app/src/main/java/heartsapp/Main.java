@@ -79,41 +79,24 @@ public class Main {
         p1.print_hand();
 
         p1.Hearts_broken = false;
-        Player first = find_start(p1);
+        //Player first = find_start(p1);
         for(int i = 0;i<13;i++){
 
             Card[] Trick = new Card[]{null, null, null, null};
-            first = play_trick(p1, first, p1.Hearts_broken, Trick, i, round);
+           // first = play_trick(p1, first, p1.Hearts_broken, Trick, i, round);
 
         }
         System.out.println("Hand finished");
     }
 
     //find who has the 2C and prompts them to play it
-    public static Player find_start(Player p1){
-
-        if(p1.hand[0].val == 2){
-            return p1;
-
-        }
-        else if(p1.next.hand[0].val == 2){
-            return p1.next;
-        }
-        else if(p1.next.next.hand[0].val == 2){
-            return p1.next.next;
-        }
-        else {
-            return p1.next.next.next;
-        }
-
-    }
-
+    
 //plays a trick of cards
     public static Player play_trick(Player p1, Player first, boolean Hearts_broken, Card[] Trick, int trick_number, int round){
         int played = 0;
 
         while(first != p1){
-            p1.Hearts_broken = first.play_card(Trick, played, p1.Hearts_broken, trick_number);
+           // p1.Hearts_broken = first.play_card(Trick, played, p1.Hearts_broken, trick_number);
             first = first.next;
             played+=1;
         }
@@ -125,7 +108,7 @@ public class Main {
 
         while(played<4){
 
-            p1.Hearts_broken = first.play_card(Trick, played, p1.Hearts_broken, trick_number);
+           // p1.Hearts_broken = first.play_card(Trick, played, p1.Hearts_broken, trick_number);
             first = first.next;
             played+=1;
         }

@@ -15,6 +15,74 @@ public class Card {
     char suit_char;
 
 
+    public int getVal() {
+        return this.val;
+    }
+
+    public int getSuit() {
+        return this.suit;
+    }
+
+    public StringBuilder getSignature() {
+        return this.signature;
+    }
+
+    public Player getHolder() {
+        return this.Holder;
+    }
+
+    public int getPointValue() {
+        return this.point_value;
+    }
+
+    public int getCardNumber() {
+        return this.Card_Number;
+    }
+
+    public boolean isPlayed() {
+        return this.played;
+    }
+
+    public String getImageURL() {
+        return this.imageURL;
+    }
+
+    public char getSuitChar() {
+        return this.suit_char;
+    }
+
+    public void setPointValue(int point_value) {
+        this.point_value = point_value;
+    }
+
+    public void setHolder(Player Holder) {
+        this.Holder = Holder;
+    }
+
+    public void setCardNumber(int Card_Number) {
+        this.Card_Number = Card_Number;
+    }
+
+    public void setSuitChar(char suitChar) {
+        this.suit_char = suitChar;
+    }
+
+    public void setImageURL(String imageURL) {
+        this.imageURL = imageURL;
+    }
+
+    public void setPlayed(boolean played) {
+        this.played = played;
+    }
+
+    
+
+    
+
+    
+
+
+
 
 
 //constructor
@@ -35,10 +103,10 @@ public class Card {
             this.suit_char = 'c';
         }
         else if(s == 14){
-            this.suit_char = 's';
+            this.suit_char = 'd';
         }
         else if(s == 15){
-            this.suit_char = 'd';
+            this.suit_char = 's';
         }
         else if(s == 16){
             this.suit_char = 'h';
@@ -78,10 +146,10 @@ public class Card {
             this.suit_char = 'c';
         }
         else if(s == 14){
-            this.suit_char = 's';
+            this.suit_char = 'd';
         }
         else if(s == 15){
-            this.suit_char = 'd';
+            this.suit_char = 's';
         }
         else if(s == 16){
             this.suit_char = 'h';

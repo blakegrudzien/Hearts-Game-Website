@@ -1,18 +1,61 @@
 package heartsapp;
-import java.util.Arrays;
+
 
 public class Player {
 int total;
 String name;
 int[] score = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
-Card[] hand = {null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null};
+Card[] hand = {null, null, null, null, null, null, null, null, null, null, null, null, null};
 Player next;
 int[] swap = {0,-1,-1};
 boolean Hearts_broken;
+String[] imageUrls;
+
+
+public Player() {
+}
 
 Player(String n){
     this.name = n;
+
+}
+
+public String[] getImageUrls() {
+    // Initialize an array with the URLs
+    String[] imageUrls = new String[13];
+
+    // Fill the array with URLs
+    for (int i = 0; i < 13; i++) {
+        if(this.hand[i] == null){
+            imageUrls[i] = null;
+            continue;
+        }
+        Card Cur = this.hand[i];
+        if (Cur.val < 10) {
+            imageUrls[i] = "/images/Cards/Modern/" + Cur.suit_char + "0" + Cur.val + ".jpg";
+        } else if (Cur.val == 14){
+
+            imageUrls[i] = "/images/Cards/Modern/" + Cur.suit_char + "01.jpg";
+
+        }
+        else{
+            imageUrls[i] = "/images/Cards/Modern/" + Cur.suit_char + Cur.val + ".jpg";
+
+        }
     }
+
+    return imageUrls;
+}
+
+public Card[] getHand() {
+    return this.hand;
+}
+
+public void setImageUrls(String[] imageUrls) {
+    this.imageUrls = imageUrls;
+}
+
+
 
 //chooses the swaps from the computer, opting for the highest valued cards
     public void choose_swaps() {
@@ -44,7 +87,7 @@ Player(String n){
     }
 
 //the computer plays a card, with simple but strong strategy
-    public boolean play_card(Card[] Trick, int cards_played, boolean Hearts_broken, int trick_number){
+    public Integer play_card(Card[] Trick, int cards_played, boolean Hearts_broken, int trick_number){
         int min = 0;
         int i = 0;
         boolean valid = false;
@@ -108,32 +151,11 @@ Player(String n){
         this.hand[min].played = true;
         Trick[cards_played].Holder = this;
 
-        return Hearts_broken;
+        return min;
     }
 
 
-    public String[] getImageUrls() {
-        // Initialize an array with the URLs
-        String[] imageUrls = new String[13];
     
-        // Fill the array with URLs
-        for (int i = 0; i < 13; i++) {
-            Card Cur = this.hand[i];
-            if (Cur.val < 10) {
-                imageUrls[i] = "/images/Cards/Modern/" + Cur.suit_char + "0" + Cur.val + ".jpg";
-            } else if (Cur.val == 14){
-
-                imageUrls[i] = "/images/Cards/Modern/" + Cur.suit_char + "01.jpg";
- 
-            }
-            else{
-                imageUrls[i] = "/images/Cards/Modern/" + Cur.suit_char + Cur.val + ".jpg";
-
-            }
-        }
-    
-        return imageUrls;
-    }
 
     public void Sort_Hand(){
         int i, j;

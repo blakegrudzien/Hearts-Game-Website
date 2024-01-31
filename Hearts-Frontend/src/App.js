@@ -10,45 +10,46 @@ import PlayedCards from './PlayedCards';
 import BottomPlayer from './BottomPlayer';
 
 function App() {
-  const [imageURLs, setImageUrls] = useState([]); // Add this line
-  
+  const [gameStarted, setGameStarted] = useState(false);
+  const [trigger, setTrigger] = useState(0);
+  const [turn, setTurn] = useState(0);
+  const [gameState, setGameState] = useState("");
 
-  const handleClick = () => {
-    fetch('/')
-      .then(response => response.json())
-      .then(data => console.log(data))
-      .catch(error => console.error("Error:", error));
+  const triggerApp = () => {
+    setTrigger(prevTrigger => prevTrigger + 1); // Update the state to trigger a re-render
   };
 
   const startNewGame = () => {
     fetch('http://localhost:8080/startGame', { method: 'POST' })
-      .then(response => response.json())
-      .then(data => {
-        // Update the state with the new game state
-        setImageUrls(data);
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
       })
       .catch(error => {
         console.error('Error:', error);
       });
+    setGameStarted(true);
   };
+
+  console.log('App is re-rendering'); 
 
   return (
     <div className="App">
       <Header />
-      <TopPlayer/>
+      <button onClick={startNewGame}>Start New Game</button>
+      {gameStarted && <TopPlayer />}
       
-    <div className="middle-row">
-      <LeftPlayer/>
-      <PlayedCards/>  
-      <RightPlayer/>
-    </div>
-    <button onClick={startNewGame}>Start New Game</button>
-    <BottomPlayer imageURLs={imageURLs} />
+      <div className="middle-row">
+        {gameStarted && <LeftPlayer />}
+        {gameStarted && <PlayedCards setTurn={setTurn} turn={turn} gameState={gameState} />} 
+        {gameStarted && <RightPlayer />}
+      </div>
+    
+      {gameStarted && <BottomPlayer setTurn={setTurn} triggerApp={triggerApp} turn={turn} gameState={gameState} setGameState={setGameState} />}
       
       <Content />
       <Footer />
-      
-   
     </div>
   );
 }
