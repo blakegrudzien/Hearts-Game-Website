@@ -2,6 +2,7 @@ package heartsapp;
 
 
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -148,9 +149,11 @@ public Integer getturn() {
         JedisShardInfo shardInfo = new JedisShardInfo("localhost");
         Jedis jedis = new Jedis(shardInfo);
         ObjectMapper mapper = new ObjectMapper();
+        int turn = 0;
 
         try {
             int index = payload.get("index");
+            turn = Integer.parseInt(jedis.get("turn"));
 
             String p1Json = jedis.get("p1");
 
@@ -172,12 +175,20 @@ public Integer getturn() {
             for(int i = 0;i<4;i++){
                 if(trick[i] == null){
                     trick[i] = playedCard;
+                    trick[i].Holder = p1;
                     break;
                 }
             }
+
+            turn +=1;
             String updatedTrickJson = mapper.writeValueAsString(trick);
+            p1Json = mapper.writeValueAsString(p1);
+            jedis.set("p1", p1Json);
+           
+
 
             // Update the trick array in Redis
+            jedis.set("turn", String.valueOf(turn));
             jedis.set("trick", updatedTrickJson);
         } catch (Exception e) {
             System.out.println("Exception while playing card: " + e.getMessage());
@@ -234,6 +245,9 @@ public Integer getturn() {
             if(trick[i]!=null){
                 num+=1;
             }
+        }
+        if(num == 4){
+            return null;
         }
 
         if(turn == 1){
@@ -309,6 +323,7 @@ public Integer getturn() {
                 }
              
             }
+            System.out.println(Arrays.toString(valid));
             return valid;
         }
         else if(turn == 2){
@@ -341,39 +356,8 @@ public Integer getturn() {
             Hearts_Broken = true;
         }
 
-        if(num == 4){
-            Card high = trick[0];
-            int trick_suit = trick[0].suit;
-            int points = trick[0].point_value;
-            for(int i = 1;i<4; i++){
-                if(trick[i].suit == trick_suit){
-                    if(trick[i].val > high.val){
-                        high = trick[i];
-                    }
-
-                }
-            }
-            high.Holder.score[trick_number] = points;
-            if(high.Holder == p1){
-                turn = 1;
-            }
-            else if(high.Holder == p2){
-                turn = 2;
-            }
-            else if(high.Holder == p3){
-                turn = 3;
-            }
-            else{
-                turn = 4;
-            }
-
-
-            for(int i = 0;i<4;i++){
-                trick[i] = null;
-            }
-            trick_number += 1;
-
-        }
+        
+        
 
 
         jedis.set("Hearts_Broken", String.valueOf(Hearts_Broken));
@@ -391,6 +375,149 @@ public Integer getturn() {
 
     return null;
     }
+
+    @CrossOrigin(origins = "http://localhost:3000")
+    @PostMapping("/clearTrick")
+    public void clearTrick() {
+    // Create a JedisShardInfo object
+    JedisShardInfo shardInfo = new JedisShardInfo("localhost");
+
+    // Create a Jedis object
+    Jedis jedis = new Jedis(shardInfo);
+
+    // Create an ObjectMapper object
+    ObjectMapper mapper = new ObjectMapper();
+
+    // Get the players and the trick from Redis
+    Player p1 = null;
+    Player p2 = null;
+    Player p3 = null;
+    Player p4 = null;
+    Card[] trick = null;
+    int turn = 0;
+    String gameState = null;
+    
+    
+
+    try {
+        gameState = jedis.get("gameState");
+        p1 = mapper.readValue(jedis.get("p1"), Player.class);
+        p2 = mapper.readValue(jedis.get("p2"), Player.class);
+        p3 = mapper.readValue(jedis.get("p3"), Player.class);
+        p4 = mapper.readValue(jedis.get("p4"), Player.class);
+        trick = mapper.readValue(jedis.get("trick"), Card[].class);
+        turn = Integer.parseInt(jedis.get("turn"));
+    } catch (IOException e) {
+        e.printStackTrace();
+    }
+
+    char suit_char = trick[0].suit_char;
+    int points = trick[0].point_value;
+    Player winner = trick[0].Holder;
+    int max = trick[0].val;
+    trick[0] = null;
+
+    System.out.println(p1.name);
+
+    for(int i = 0;i<4;i++){
+        if(trick[i] != null){
+            System.out.println(trick[i].Holder.name);
+        }
+    }
+    
+
+    // Calculate points for each player based on the trick
+    // This will depend on your game's rules
+    // For example:
+    for(int i = 1;i<4;i++){
+        if(trick[i].suit_char == suit_char){
+            if(trick[i].val > max){
+                max = trick[i].val;
+                winner = trick[i].Holder;
+            }
+        }
+        points+=trick[i].point_value;
+        //trick[i] = null;
+    }
+    System.out.println("Max is: " + max);
+    System.out.println("Winner is: " + winner.name);
+
+    if(winner.name.equals("Player 1")){
+        System.out.println("Player 1 won the trick");
+        p1.score += points;
+        turn = 1;
+    }
+    else if(winner.name.equals("Player 2")){
+        System.out.println("Player 2 won the trick");
+        p2.score += points;
+        turn = 2;
+    }
+    else if(winner.name.equals("Player 3")){
+        System.out.println("Player 3 won the trick");
+        p3.score += points;
+        turn = 3;
+    }
+    else{
+        System.out.println("Player 4 won the trick");
+        p4.score += points;
+        turn = 4;
+    }
+
+    for(int i = 0;i<4;i++){
+        trick[i] = null;
+    }
+
+    gameState = "Scoring";
+
+    System.out.println("Trick Cleared and Gamestate is: " + gameState);
+    System.out.println("Trick Cleared and Turn is: " + turn);
+
+
+    // Save the updated players and trick back to Redis
+    try {
+        jedis.set("gameState", gameState);
+        jedis.set("turn", Integer.toString(turn));
+        jedis.set("p1", mapper.writeValueAsString(p1));
+        jedis.set("p2", mapper.writeValueAsString(p2));
+        jedis.set("p3", mapper.writeValueAsString(p3));
+        jedis.set("p4", mapper.writeValueAsString(p4));
+        jedis.set("trick", mapper.writeValueAsString(trick));
+    } catch (JsonProcessingException e) {
+        e.printStackTrace();
+    }
+}
+@CrossOrigin(origins = "http://localhost:3000")
+@GetMapping("/getScores")
+    public int[] getScores() {
+        JedisShardInfo shardInfo = new JedisShardInfo("localhost");
+        Jedis jedis = new Jedis(shardInfo);
+        ObjectMapper mapper = new ObjectMapper();
+        int[] scores = new int[4];
+        try {
+            String gameState = jedis.get("gameState");
+            Player p1 = mapper.readValue(jedis.get("p1"), Player.class);
+            Player p2 = mapper.readValue(jedis.get("p2"), Player.class);
+            Player p3 = mapper.readValue(jedis.get("p3"), Player.class);
+            Player p4 = mapper.readValue(jedis.get("p4"), Player.class);
+
+            scores[0] = p1.score;
+            scores[1] = p2.score;
+            scores[2] = p3.score;
+            scores[3] = p4.score;
+            
+            jedis.set("gameState", "Play");  // Update the gameState in Redis
+        } catch (Exception e) {
+            System.out.println("Exception while getting scores from Redis: " + e.getMessage());
+        }
+
+        System.out.println("Scores from Redis: " + Arrays.toString(scores));
+        return scores;
+    }
+
+
+
+
+
 
    
     @CrossOrigin(origins = "http://localhost:3000")
@@ -413,12 +540,6 @@ public void swap_cards(@RequestBody int[] swaps) {
     int round = 0;
     String gameState = null;
     int turn = 0;
-
-    
-
-
-
-
     try {
         gameState = jedis.get("gameState");
         p1 = mapper.readValue(jedis.get("p1"), Player.class);

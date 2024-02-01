@@ -17,6 +17,7 @@ const TopPlayer = () => {
     getComputerHand();
   }, []);
 
+  console.log("Top Player called");
   return (
     <div className="topHand">
       {Array(cardCount).fill().map((_, i) => (

@@ -17,6 +17,8 @@ const LeftPlayer = () => {
     getComputerHand();
   }, []);
 
+
+  console.log("Left Player called");
   return (
     <div className="sideHand">
       {Array(cardCount).fill().map((_, i) => (

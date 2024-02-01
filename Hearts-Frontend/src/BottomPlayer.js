@@ -8,7 +8,7 @@ const BottomPlayer = ({ gameState, setGameState, turn, setTurn, triggerApp }) =>
   const [imageUrls, setImageUrls] = useState([]);
 
   const [hand, setHand] = useState([]);
-  const [valid, setValid] = useState(Array(13).fill(true));
+  const [valid, setValid] = useState([]);
   const [renderKey, setRenderKey] = useState(Math.random());
   
 
@@ -57,8 +57,11 @@ useEffect(() => {
     if (gameState === 'Play') {
       console.log("Play state was passed");
       if (turn === 1) {
-        const validArray = await playCard();
-        setValid(validArray);
+        playCard().then(validArray => {
+          if (validArray) {
+            setValid(validArray);
+          }
+        });
       } else {
         console.log("attempt to reload playedcards   " + gameState);
         triggerApp();
@@ -74,8 +77,7 @@ useEffect(() => {
 
 const playCard = async () => {
   try {
-    // Call the play_card function in the backend
-
+    console.log("trying to get valid array");
     console.log("playCard function called from bottomplayer");
     const response = await fetch('http://localhost:8080/playCard', {
       method: 'POST',
@@ -85,20 +87,29 @@ const playCard = async () => {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    // Parse the response as JSON
     const data = await response.json();
-    setValid(data.validArray); // Update the valid state with the new data
-   
-    // Return the boolean array from the response
-    
+    console.log("just got valid array");
+    console.log("Response data: ", data);
+    console.log("Valid array length: ", data.length);
+
+    if (data) {
+      return data;
+    } else {
+      console.error('Data is undefined');
+    }
   } catch (error) {
     console.error('Error:', error);
   }
-};
+}
+
+useEffect(() => {
+  console.log("useEffect ran");
+  console.log("Valid array: ", valid);
+}, [valid]);
 
 
 const player_plays = async (index) => {
-  console.count('player_plays called')
+  console.log('player_plays called');
   try {
     // Call the Player_plays function in the backend
     const response = await fetch('http://localhost:8080/player_plays', {
@@ -112,13 +123,33 @@ const player_plays = async (index) => {
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
+    console.log("before printing trick" + imageUrls);
 
-    // No need to parse the response as JSON or handle the response data
-    // since the Player_plays function doesn't return anything
+    printTrick();
+    fetchTurn();
+
+    console.log("ImageUrls before calling  hand: " + imageUrls);
+
+
+
+
+
+
+  const response2 = await fetch('http://localhost:8080/getPlayerHand', { method: 'GET' });
+  let handData = await response2.text();
+  await setImageUrls(JSON.parse(handData)); // replace with actual data property
+  console.out("ImageUrls after playing: " + imageUrls);
+
+    
   } catch (error) {
     console.error('Error:', error);
   }
+
 };
+
+useEffect(() => {
+  console.log("ImageUrls after playing: ", imageUrls);
+}, [imageUrls]);
 
   useEffect(() => {
     const startNewGame = async () => {
@@ -145,6 +176,17 @@ const player_plays = async (index) => {
     startNewGame();
   }, []);
 
+
+  const printTrick = async () => {
+    try {
+      const response = await fetch('http://localhost:8080/getTrick');
+      const trick = await response.json();  // Parse the response as JSON
+      console.log("Trick:", trick);
+     // setCardUrls(trick);  // Store the trick in the cardUrls state
+    } catch (error) {
+      console.error('Error:', error);
+    }
+  };
 
 
   const handleSwap = async () => {
@@ -196,15 +238,15 @@ const player_plays = async (index) => {
 
   
   console.log("BottomPlayer is rendering");
+  console.log("Valid is:", valid);
   return (
     <div className="bottom-player">
-      {turn !== 1 && gameState === 'Play' ? (
-        <PlayedCards />
-      ) : (
-        <>
-          {imageUrls.map((imageUrl, index) => (
+      <>
+        {imageUrls.map((imageUrl, index) => (
+          imageUrl && (
             <button 
               key={index}
+              disabled={gameState === 'Play' && !valid[index]}
               onClick={() => {
                 if (gameState === 'Swap') {
                   handleCardSelection(index);
@@ -215,14 +257,14 @@ const player_plays = async (index) => {
             >
               <img src={imageUrl} className={`Player-card ${selectedCards.includes(index) ? 'selected' : ''}`}/>
             </button>
-          ))}
-          {gameState === 'Swap' && (
-            <button onClick={handleSwap} disabled={selectedCards.length !== 3} >
-              Perform Swap
-            </button>
-          )}
-        </>
-      )}
+          )
+        ))}
+        {gameState === 'Swap' && (
+          <button onClick={handleSwap} disabled={selectedCards.length !== 3} >
+            Perform Swap
+          </button>
+        )}
+      </>
     </div>
   );
   };

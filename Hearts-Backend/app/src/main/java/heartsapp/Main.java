@@ -34,13 +34,13 @@ public class Main {
 
         int round_number = 0;
         
-        print_scoreboard(round_number, p1, p2, p3, p4);
+        //print_scoreboard(round_number, p1, p2, p3, p4);
         while(p1.total<100 && p2.total<100 && p3.total<100 && p4.total<100){
             make_deck(deck);
             shuffle_and_deal(deck, p1, p2, p3, p4);
 
             Play_hand(p1, p2, p3, p4, round_number);
-            print_scoreboard(round_number, p1, p2, p3, p4);
+            //print_scoreboard(round_number, p1, p2, p3, p4);
 
             round_number +=1;
         }
@@ -124,7 +124,7 @@ public class Main {
         System.out.println(winner.Holder.name + "  Took The trick with: " + winner.signature);
         System.out.println(" ");
         System.out.println(" ");
-        winner.Holder.score[round] += point;
+        //winner.Holder.score[round] += point;
 
         return winner.Holder;
 
@@ -360,43 +360,16 @@ public class Main {
     }
 
 //prints each round then the total at the bottom, also checks if someone has shot the moon
-    public static void print_scoreboard(int round, Player p1, Player p2, Player p3, Player p4 ){
-                System.out.println("                    Player 1 (you)    |      Player 2     |      Player 3      |        Player 4      |");
-        for(int i = 0;i<round+1;i++){
-            System.out.println("                           "+ p1.score[i] +"                    "+ p2.score[i] +"                    " + p3.score[i] +"                       " + p4.score[i]);
-
-
-        }
-
-        if(p1.score[round] == 26 || p2.score[round] == 26 || p3.score[round] == 26 || p4.score[round] == 26){
-            Player shooter  = p1;
-            for(int i = 1; i<4;i++){
-                if(shooter.score[round]==26){
-                    System.out.println(shooter.name + "   Has shot the moon!!");
-                    Shoot_the_moon(shooter, round);
-                }
-                shooter = shooter.next;
-            }
-            System.out.println("New Scores:");
-
-        }
-
-        p1.total += p1.score[round];
-        p2.total += p2.score[round];
-        p3.total += p3.score[round];
-        p4.total += p4.score[round];
-        System.out.print("Totals:                    "+ p1.total    +"                    "+ p2.total    +"                    "+ p3.total     +"                       " + p4.total);
-        System.out.println(" ");
-
-    }
+    
 
 //Changes the shooters score to zero and everyone else's score to 26
-    public static void Shoot_the_moon(Player shooter, int round){
+   /*  public static void Shoot_the_moon(Player shooter, int round){
         shooter.score[round] = 0;
         shooter.next.score[round] = 26;
         shooter.next.next.score[round] = 26;
         shooter.next.next.next.score[round] = 26;
     }
+    */
 
 
 //Initializes the deck of cards

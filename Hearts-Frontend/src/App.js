@@ -8,9 +8,11 @@ import RightPlayer from './RightPlayer';
 import LeftPlayer from './LeftPlayer';
 import PlayedCards from './PlayedCards';
 import BottomPlayer from './BottomPlayer';
+import ScoreBoard from './ScoreBoard';  // Import ScoreBoard
 
 function App() {
-  const [gameStarted, setGameStarted] = useState(false);
+  localStorage.removeItem('gameStarted');
+  const [gameStarted, setGameStarted] = useState(localStorage.getItem('gameStarted') === 'true' || false);
   const [trigger, setTrigger] = useState(0);
   const [turn, setTurn] = useState(0);
   const [gameState, setGameState] = useState("");
@@ -20,33 +22,47 @@ function App() {
   };
 
   const startNewGame = () => {
-    fetch('http://localhost:8080/startGame', { method: 'POST' })
+    fetch('http://localhost:8080/startGame', {method: 'POST'})
       .then(response => {
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
+        } else {
+          setGameStarted(true);
+          localStorage.setItem('gameStarted', 'true');
         }
       })
       .catch(error => {
         console.error('Error:', error);
       });
-    setGameStarted(true);
   };
 
   console.log('App is re-rendering'); 
+  console.log("Gamestate in App is: " + gameState);
+  console.log("GameStarted in App= " + gameStarted);
 
   return (
+    console.log("Componenets are Loading"),
+    console.log("Gamestatrted in App is: " + gameStarted),
+
     <div className="App">
       <Header />
-      <button onClick={startNewGame}>Start New Game</button>
+      {!gameStarted && <button onClick={startNewGame}>Start New Game</button>}
+      button passed
       {gameStarted && <TopPlayer />}
+      topplayer passed
       
       <div className="middle-row">
         {gameStarted && <LeftPlayer />}
-        {gameStarted && <PlayedCards setTurn={setTurn} turn={turn} gameState={gameState} />} 
+        {gameStarted && <PlayedCards setGameState = {setGameState} setTurn={setTurn} turn={turn} gameState={gameState} />} 
         {gameStarted && <RightPlayer />}
       </div>
     
-      {gameStarted && <BottomPlayer setTurn={setTurn} triggerApp={triggerApp} turn={turn} gameState={gameState} setGameState={setGameState} />}
+      {gameStarted && (
+      <div className = "Bottom-row">
+        <BottomPlayer setTurn={setTurn} triggerApp={triggerApp} turn={turn} gameState={gameState} setGameState={setGameState} />
+        <ScoreBoard setGameState = {setGameState} gameState={gameState}/>  
+      </div>
+    )}
       
       <Content />
       <Footer />

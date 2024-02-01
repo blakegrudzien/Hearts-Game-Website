@@ -1,10 +1,11 @@
 package heartsapp;
 
+import java.util.List;
 
 public class Player {
 int total;
 String name;
-int[] score = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+int score = 0;
 Card[] hand = {null, null, null, null, null, null, null, null, null, null, null, null, null};
 Player next;
 int[] swap = {0,-1,-1};
@@ -19,6 +20,26 @@ Player(String n){
     this.name = n;
 
 }
+
+// Getter and setter for name
+    public String getName() {
+        return name;
+    }
+
+ public void setName(String name) {
+        this.name = name;
+    }
+
+    // Getter and setter for score
+    public int getScore() {
+        return score;
+    }
+
+    public void setScore(int score) {
+        this.score = score;
+    }
+
+    
 
 public String[] getImageUrls() {
     // Initialize an array with the URLs
@@ -89,6 +110,10 @@ public void setImageUrls(String[] imageUrls) {
 //the computer plays a card, with simple but strong strategy
     public Integer play_card(Card[] Trick, int cards_played, boolean Hearts_broken, int trick_number){
         int min = 0;
+        while(this.hand[min] == null){
+            min++;
+        }
+        
         int i = 0;
         boolean valid = false;
         int min_val = 15;
@@ -99,7 +124,7 @@ public void setImageUrls(String[] imageUrls) {
 
 
                 for (i = 0; i < 13; i++) {
-                    if (this.hand[i].val < min_val && !this.hand[i].played) {
+                    if (this.hand[i] !=null && this.hand[i].val < min_val ) {
                         if (Hearts_broken || this.hand[i].suit != 16) { //doesn't let computer play a heart if hearts are not broken
 
                             min = i;
@@ -113,7 +138,7 @@ public void setImageUrls(String[] imageUrls) {
             min = -1;
             //if the computer isn't starting the trick, it plays the lowest valued card of the given suit
             for(i = 0;i<13;i++){
-                if(this.hand[i].suit==Trick[0].suit && !this.hand[i].played){
+                if(this.hand[i]!= null && this.hand[i].suit==Trick[0].suit ){
                     min = i;
                     break;
                 }
@@ -124,14 +149,14 @@ public void setImageUrls(String[] imageUrls) {
                 int max_points = -1;
                 int max_val = 0;
                 for(i = 0;i<13;i++){
-                    if(this.hand[i].point_value > max_points && !this.hand[i].played){
+                    if(this.hand[i]!= null && this.hand[i].point_value > max_points){
                         min = i;
                         max_points = this.hand[min].point_value;
                     }
                 }
                 if(max_points == 0){
                     for(i = 0;i<13;i++){
-                        if(this.hand[i].val > max_val && !this.hand[i].played){
+                        if(this.hand[i] != null && this.hand[i].val > max_val ){
                             min = i;
                             max_val = this.hand[min].val;
                         }
@@ -148,7 +173,7 @@ public void setImageUrls(String[] imageUrls) {
         System.out.println(this.name + " -  " + this.hand[min].signature);
 
 
-        this.hand[min].played = true;
+        //this.hand[min] = null;
         Trick[cards_played].Holder = this;
 
         return min;
