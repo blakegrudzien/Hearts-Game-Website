@@ -3,6 +3,28 @@ import React, { useState, useEffect, useCallback } from 'react';
 
 function ScoreBoard({ gameState, setGameState }) {
   const [scores, setScores] = useState([0, 0, 0, 0]);
+  const [roundFinished, setRoundFinished] = useState(false);
+
+
+
+
+  const startNewRound = async () => {
+    try {
+      const response = await fetch('http://localhost:8080/startNewRound', {
+        method: 'POST',
+      });
+  
+      if (!response.ok) {
+        throw new Error('HTTP error ' + response.status);
+      }
+  
+      // After successfully starting a new round, reset roundFinished state
+      setRoundFinished(false);
+      setGameState("Swap");
+    } catch (error) {
+      console.error('Error:', error);
+    }
+  };
 
   
   const fetchScores = useCallback(async () => {
@@ -13,7 +35,20 @@ function ScoreBoard({ gameState, setGameState }) {
   
       if (Array.isArray(newScores) && newScores.length === 4) {
         setScores(newScores);  // Update the scores state
-        setGameState("Play");  // Update the gameState to 'Play'
+
+        const trickResponse = await fetch('http://localhost:8080/getTrickNumber');
+        const trickNumber = await trickResponse.json();
+        console.log("Trick number is: " + trickNumber);
+        if (trickNumber === 13) {
+          setGameState("Swap");
+          setRoundFinished(true);
+          console.log("Round finished");
+        } else {
+          setGameState("Play");
+          setRoundFinished(false);
+        }
+        
+          // Update the gameState to 'Play'
       } else {
         console.error('Invalid scores:', newScores);
       }
@@ -31,6 +66,9 @@ function ScoreBoard({ gameState, setGameState }) {
 
   return (
     <div>
+      {roundFinished && (
+  <button onClick={startNewRound}>Start Next Round</button>
+)}
       <p>Player 1: {scores[0]}</p>
       <p>Player 2: {scores[1]}</p>
       <p>Player 3: {scores[2]}</p>

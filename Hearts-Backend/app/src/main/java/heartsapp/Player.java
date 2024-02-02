@@ -21,6 +21,12 @@ Player(String n){
 
 }
 
+public void ResetHand(){
+    for(int i = 0; i<13;i++){
+        this.hand[i] = null;
+    }
+}
+
 // Getter and setter for name
     public String getName() {
         return name;

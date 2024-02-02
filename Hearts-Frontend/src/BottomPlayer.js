@@ -10,6 +10,7 @@ const BottomPlayer = ({ gameState, setGameState, turn, setTurn, triggerApp }) =>
   const [hand, setHand] = useState([]);
   const [valid, setValid] = useState([]);
   const [renderKey, setRenderKey] = useState(Math.random());
+  const [roundNumber, setRoundNumber] = useState(1);
   
 
 
@@ -32,6 +33,8 @@ const BottomPlayer = ({ gameState, setGameState, turn, setTurn, triggerApp }) =>
       console.error('Error:', error);
     }
   };
+
+
 
   const fetchTurn = async () => {
     try {
@@ -128,6 +131,7 @@ const player_plays = async (index) => {
     printTrick();
     fetchTurn();
 
+
     console.log("ImageUrls before calling  hand: " + imageUrls);
 
 
@@ -137,6 +141,7 @@ const player_plays = async (index) => {
 
   const response2 = await fetch('http://localhost:8080/getPlayerHand', { method: 'GET' });
   let handData = await response2.text();
+  await setValid(Array(JSON.parse(handData).length).fill(false));
   await setImageUrls(JSON.parse(handData)); // replace with actual data property
   console.out("ImageUrls after playing: " + imageUrls);
 
@@ -146,6 +151,9 @@ const player_plays = async (index) => {
   }
 
 };
+
+
+
 
 useEffect(() => {
   console.log("ImageUrls after playing: ", imageUrls);
@@ -164,7 +172,7 @@ useEffect(() => {
       let gameState = await response.text();
       setGameState(gameState); // replace with actual data property
 
-// Fetch the player's hand
+
       response = await fetch('http://localhost:8080/getPlayerHand', { method: 'GET' });
       let handData = await response.text();
       setImageUrls(JSON.parse(handData)); // replace with actual data property
@@ -190,7 +198,9 @@ useEffect(() => {
 
 
   const handleSwap = async () => {
+
     try {
+      
       const response = await fetch('http://localhost:8080/performSwap', {
         method: 'POST',
         headers: {
@@ -222,9 +232,12 @@ useEffect(() => {
     setShowSwapButton(false);
   };
 
+  
+
 
   
   const handleCardSelection = (index) => {
+    
     // If the card is already selected, deselect it
     if (selectedCards.includes(index)) {
       setSelectedCards(selectedCards.filter(cardIndex => cardIndex !== index));
@@ -235,6 +248,39 @@ useEffect(() => {
       }
     }
   };
+
+  useEffect(() => {
+    const fetchHandData = async () => {
+      if(gameState === 'Swap'){
+        
+        let roundResponse = await fetch('http://localhost:8080/getRoundNumber', { method: 'GET' });
+        if (roundResponse.ok) {
+          
+          let roundNum = await roundResponse.text();
+          setRoundNumber(parseInt(roundNum));
+          console.log("Round number = " + roundNumber);
+  
+          if(roundNumber % 4 === 0){
+            setGameState("Play");
+          }
+            
+            const handResponse = await fetch('http://localhost:8080/getPlayerHand');
+          
+            if (handResponse.ok) {
+              const handData = await handResponse.json();
+              setImageUrls(handData); // replace with actual data property
+            } else {
+              console.error('Error:', handResponse.status, handResponse.statusText);
+            }
+          
+        } else {
+          console.error('Error:', roundResponse.status, roundResponse.statusText);
+        }
+      }
+    };
+  
+    fetchHandData();
+  }, [gameState]);
 
   
   console.log("BottomPlayer is rendering");
@@ -248,7 +294,7 @@ useEffect(() => {
               key={index}
               disabled={gameState === 'Play' && !valid[index]}
               onClick={() => {
-                if (gameState === 'Swap') {
+                if (gameState === 'Swap' && roundNumber % 4 !== 0) {
                   handleCardSelection(index);
                 } else if (gameState === 'Play' && valid[index]) {
                   player_plays(index);
@@ -260,7 +306,7 @@ useEffect(() => {
           )
         ))}
         {gameState === 'Swap' && (
-          <button onClick={handleSwap} disabled={selectedCards.length !== 3} >
+          <button onClick={handleSwap} className = "Swap-Button" disabled={selectedCards.length !== 3} >
             Perform Swap
           </button>
         )}

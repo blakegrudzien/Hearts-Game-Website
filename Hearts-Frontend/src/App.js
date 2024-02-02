@@ -36,20 +36,17 @@ function App() {
       });
   };
 
-  console.log('App is re-rendering'); 
-  console.log("Gamestate in App is: " + gameState);
-  console.log("GameStarted in App= " + gameStarted);
+  
 
   return (
-    console.log("Componenets are Loading"),
-    console.log("Gamestatrted in App is: " + gameStarted),
+    
 
     <div className="App">
       <Header />
       {!gameStarted && <button onClick={startNewGame}>Start New Game</button>}
-      button passed
+     
       {gameStarted && <TopPlayer />}
-      topplayer passed
+      
       
       <div className="middle-row">
         {gameStarted && <LeftPlayer />}

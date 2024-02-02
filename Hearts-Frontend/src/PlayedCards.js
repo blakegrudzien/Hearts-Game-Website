@@ -63,6 +63,7 @@ const PlayedCards = ({ setGameState, gameState, turn , setTurn}) => {
 
       if(trick.length === 4){
         console.log("Trick is full, clearing trick");
+        await setGameState("Clearing");
         setShowButton(true);
       } else {
         setShowButton(false);
