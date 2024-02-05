@@ -10,7 +10,6 @@ import java.util.Map;
 import javax.servlet.http.HttpSession;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
-
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -28,6 +27,10 @@ import redis.clients.jedis.Jedis;
 @RestController
 @SessionAttributes("gameState")
 public class GameController {
+
+    /*
+     * This function fetches the gamestate from redis then sends it to the frontend
+     */
     
     @CrossOrigin(origins = "http://localhost:3000")
     @GetMapping("/getGameState")
@@ -43,6 +46,11 @@ public class GameController {
         }
         return gameState;
     }
+
+
+    /*
+     * This function fetches the turn from redis then sends it to the frontend
+     */
 
     @CrossOrigin(origins = "http://localhost:3000")
     @GetMapping("/getturn")
@@ -60,7 +68,9 @@ public class GameController {
     }
 
 
-
+    /*
+     * This function fetches the trick from redis then sends it to the frontend
+     */
     @CrossOrigin(origins = "http://localhost:3000")
     @GetMapping("/getTrick")
     public String[] getTrick() {
@@ -85,34 +95,11 @@ public class GameController {
         return trickList != null ? trickList : new String[0];
     }
 
-    @CrossOrigin(origins = "http://localhost:3000")
-    @GetMapping("/get_played_card/{player}")
-    public String getPlayedCard(@PathVariable String player) {
-        JedisShardInfo shardInfo = new JedisShardInfo("localhost");
-        Jedis jedis = new Jedis(shardInfo);
-        ObjectMapper mapper = new ObjectMapper();
 
-        try {
-            String trickJson = jedis.get("trick");
 
-            Card[] trick = mapper.readValue(trickJson, Card[].class);
-
-            String playerJson = jedis.get(player);
-            Player Card_player = mapper.readValue(playerJson, Player.class);
-
-            for (Card card : trick) {
-                if (card != null && card.Holder.equals(Card_player)) {
-                    return card.imageURL;
-                }
-            }
-    
-            return null;
-        } catch (Exception e) {
-            System.out.println("Exception while getting played card: " + e.getMessage());
-            return "Error while getting played card";
-        } 
-    }
-
+    /*
+     * This function fetches the round number from redis then sends it to the frontend
+     */
     @CrossOrigin(origins = "http://localhost:3000")
     @GetMapping("/getRoundNumber")
     public int getRoundNumber() {
@@ -129,6 +116,10 @@ public class GameController {
         return roundNumber;
     }
     
+
+    /*
+     * This function takes the card that the player has chosen and adds it to the trick and removes it from their hand
+     */
     @CrossOrigin(origins = "http://localhost:3000")
     @PostMapping("/player_plays")
     public void playerPlays(@RequestBody Map<String, Integer> payload) {
@@ -174,6 +165,10 @@ public class GameController {
         }
     }
 
+
+    /*
+     * This function fetches the trick number from redis then sends it to the frontend
+     */
     @CrossOrigin(origins = "http://localhost:3000")
     @GetMapping("/getTrickNumber")
     public Integer getTrickNumber() {
@@ -184,6 +179,14 @@ public class GameController {
         return trick_number;
     }
 
+
+
+
+    /*
+     * If this function is triggered by  the computer, it will let the computer play 
+     * a card and add it to the trick, if the player called it, it will look at the trick 
+     * and return a boolean array that will correspond to which of the players cards can be played
+     */
     @CrossOrigin(origins = "http://localhost:3000")
     @PostMapping("/playCard")
     public Object playCard() throws JsonMappingException, JsonProcessingException {
@@ -277,7 +280,6 @@ public class GameController {
                                 
                         }
                     }
-
                 }                   
             }
             for(int i = 0;i<13;i++){
@@ -285,8 +287,6 @@ public class GameController {
                     System.out.println(valid[i]);
                 }
             }
-            System.out.println(valid);
-
             for( int i = 0;i<13;i++){  
                 if(valid[i] == true){
                     System.out.println(p1.hand[i].imageURL);
@@ -330,6 +330,12 @@ public class GameController {
         jedis.set("trick", mapper.writeValueAsString(trick));
     return null;
     }
+
+
+
+    /*
+     * This function clears out the trick and allocates points to the winner of the trick
+     */
 
     @CrossOrigin(origins = "http://localhost:3000")
     @PostMapping("/clearTrick")
@@ -426,67 +432,73 @@ public class GameController {
         }
 }
 
-
-@CrossOrigin(origins = "http://localhost:3000")
-@PostMapping("/startNewRound")
-public void startNewRound() {
-    JedisShardInfo shardInfo = new JedisShardInfo("localhost");
-    Jedis jedis = new Jedis(shardInfo);
-    ObjectMapper mapper = new ObjectMapper(); // create a new ObjectMapper
-    try {
-        Player p1 = mapper.readValue(jedis.get("p1"), Player.class);
-        Player p2 = mapper.readValue(jedis.get("p2"), Player.class);
-        Player p3 = mapper.readValue(jedis.get("p3"), Player.class);
-        Player p4 = mapper.readValue(jedis.get("p4"), Player.class);
-        int turn = Integer.parseInt(jedis.get("turn"));
-        int round_number = Integer.parseInt(jedis.get("round_number"));
-        int trick_number = Integer.parseInt(jedis.get("trick_number"));
-        boolean Hearts_Broken = Boolean.parseBoolean(jedis.get("Hearts_Broken"));
-        Card[] trick = mapper.readValue(jedis.get("trick"), Card[].class);
-        Boolean[] ValidCard = mapper.readValue(jedis.get("ValidCard"), Boolean[].class);
-        String gameState = "Swap";
-        /*if(round_number % 4 == 0){
-            gameState = "Play";
-        }*/
-        
-        
-        Hearts_Broken = false;
-        round_number  +=1;
-        trick_number = 0; 
-        Card[] deck = new Card[52];
-        p1.ResetHand();
-        p2.ResetHand();
-        p3.ResetHand();
-        p4.ResetHand();
-        p1.next = p2;
-        p2.next = p3;
-        p3.next = p4;
-        p4.next = p1;
-        make_deck(deck);
-        
-        shuffle_and_deal(deck, p1, p2, p3, p4);
-        p1.Sort_Hand();
-        p2.Sort_Hand();
-        p3.Sort_Hand();
-        p4.Sort_Hand();
-        turn = find_start(p1);
-        System.out.println("p1's new hand: " + Arrays.toString(p1.getImageUrls()) + " and turn is: " + turn);
-        jedis.set("p1", mapper.writeValueAsString(p1));
-        jedis.set("p2", mapper.writeValueAsString(p2));
-        jedis.set("p3", mapper.writeValueAsString(p3));
-        jedis.set("p4", mapper.writeValueAsString(p4));
-        jedis.set("turn", Integer.toString(turn));
-        jedis.set("round_number", Integer.toString(round_number));
-        jedis.set("trick_number", Integer.toString(trick_number));
-        jedis.set("Hearts_Broken", Boolean.toString(Hearts_Broken));
-        jedis.set("trick", mapper.writeValueAsString(trick));
-        jedis.set("ValidCard", mapper.writeValueAsString(ValidCard));
-        jedis.set("gameState", gameState);
-    } catch (IOException e) {
-        System.out.println("Exception while reading from Redis or converting values: " + e.getMessage());
+    /*
+     * This function starts a newround by resetting the trick, and the players hands
+     */
+    @CrossOrigin(origins = "http://localhost:3000")
+    @PostMapping("/startNewRound")
+    public void startNewRound() {
+        JedisShardInfo shardInfo = new JedisShardInfo("localhost");
+        Jedis jedis = new Jedis(shardInfo);
+        ObjectMapper mapper = new ObjectMapper(); // create a new ObjectMapper
+        try {
+            Player p1 = mapper.readValue(jedis.get("p1"), Player.class);
+            Player p2 = mapper.readValue(jedis.get("p2"), Player.class);
+            Player p3 = mapper.readValue(jedis.get("p3"), Player.class);
+            Player p4 = mapper.readValue(jedis.get("p4"), Player.class);
+            int turn = Integer.parseInt(jedis.get("turn"));
+            int round_number = Integer.parseInt(jedis.get("round_number"));
+            int trick_number = Integer.parseInt(jedis.get("trick_number"));
+            boolean Hearts_Broken = Boolean.parseBoolean(jedis.get("Hearts_Broken"));
+            Card[] trick = mapper.readValue(jedis.get("trick"), Card[].class);
+            Boolean[] ValidCard = mapper.readValue(jedis.get("ValidCard"), Boolean[].class);
+            String gameState = "Swap";
+            /*if(round_number % 4 == 0){
+                gameState = "Play";
+            }*/
+            
+            
+            Hearts_Broken = false;
+            round_number  +=1;
+            trick_number = 0; 
+            Card[] deck = new Card[52];
+            p1.ResetHand();
+            p2.ResetHand();
+            p3.ResetHand();
+            p4.ResetHand();
+            p1.next = p2;
+            p2.next = p3;
+            p3.next = p4;
+            p4.next = p1;
+            make_deck(deck);
+            
+            shuffle_and_deal(deck, p1, p2, p3, p4);
+            p1.Sort_Hand();
+            p2.Sort_Hand();
+            p3.Sort_Hand();
+            p4.Sort_Hand();
+            turn = find_start(p1);
+            System.out.println("p1's new hand: " + Arrays.toString(p1.getImageUrls()) + " and turn is: " + turn);
+            jedis.set("p1", mapper.writeValueAsString(p1));
+            jedis.set("p2", mapper.writeValueAsString(p2));
+            jedis.set("p3", mapper.writeValueAsString(p3));
+            jedis.set("p4", mapper.writeValueAsString(p4));
+            jedis.set("turn", Integer.toString(turn));
+            jedis.set("round_number", Integer.toString(round_number));
+            jedis.set("trick_number", Integer.toString(trick_number));
+            jedis.set("Hearts_Broken", Boolean.toString(Hearts_Broken));
+            jedis.set("trick", mapper.writeValueAsString(trick));
+            jedis.set("ValidCard", mapper.writeValueAsString(ValidCard));
+            jedis.set("gameState", gameState);
+        } catch (IOException e) {
+            System.out.println("Exception while reading from Redis or converting values: " + e.getMessage());
+        }
     }
-}
 
+
+    /*
+     * This function fetches the scores from redis then sends it to the frontend
+     */
     @CrossOrigin(origins = "http://localhost:3000")
     @GetMapping("/getScores")
     public int[] getScores() {
@@ -541,6 +553,10 @@ public void startNewRound() {
         System.out.println("Scores from Redis: " + Arrays.toString(scoreBoard));
         return scoreBoard;
     }
+
+    /*
+     * This function performs the swap of cards between the players
+     */
 
     @CrossOrigin(origins = "http://localhost:3000")
     @PostMapping("/performSwap")
@@ -646,6 +662,11 @@ public void startNewRound() {
         }
     }
 
+
+
+    /*
+     * This function starts a new game by creating the necessary variables and setting the gamestate to swap
+     */
     @CrossOrigin(origins = "http://localhost:3000")
     @PostMapping("/startGame")
     public void startNewGame(HttpSession session) {
@@ -678,19 +699,7 @@ public void startNewRound() {
         p2.Sort_Hand();
         p3.Sort_Hand();
         p4.Sort_Hand();
-        /*for(int i = 0;i<13;i++){
-            System.out.println(p1.hand[i].signature);
-        }
-        for(int i = 0;i<13;i++){
-            System.out.println(p2.hand[i].signature);
-        }
-        for(int i = 0;i<13;i++){
-            System.out.println(p3.hand[i].signature);
-        }
-        for(int i = 0;i<13;i++){
-            System.out.println(p4.hand[i].signature);
-        }
-        System.out.println("Turn =   " + turn);*/
+        
         try {
             // serialize the players and round number to JSON and store them in Redis
             jedis.set("p1", mapper.writeValueAsString(p1));
@@ -709,6 +718,11 @@ public void startNewRound() {
         }
     }
 
+
+    /*
+     * This function fetches the Player's hand from redis then sends it to the frontend
+     */
+     
     @CrossOrigin(origins = "http://localhost:3000")
     @GetMapping("/getPlayerHand")
     public String[] getPlayerHand() {
@@ -722,8 +736,13 @@ public void startNewRound() {
         System.out.println("Exception while getting player from Redis: " + e.getMessage());
     }
     return p1.getImageUrls();
-}
+    }
 
+
+    /*
+     * This function fetches the number of cards in the computer player's hand from redis then sends it to the frontend
+     */
+     
     @CrossOrigin(origins = "http://localhost:3000")
     @GetMapping("/getComputerHand")
     public int getComputerHand(@RequestParam String playerName) {
@@ -746,7 +765,9 @@ public void startNewRound() {
         return num;
     }
 
-
+    /*
+     * This function makes the deck by creating all the cards
+     */
     public static void make_deck(Card[] deck){
         HashMap<Integer, String> key = make_key();
         for(int i =13;i<17;i++){
@@ -766,6 +787,10 @@ public void startNewRound() {
         return;
     }
 
+
+    /*
+     * This function creates the key in which the deck is created based off
+     */
     public static HashMap<Integer, String> make_key(){
         HashMap<Integer, String> key = new HashMap<>();
         key.put(0,"2"); // Chars for values
@@ -790,6 +815,10 @@ public void startNewRound() {
         return key;
     }
 
+
+    /*
+     * This function shuffles the deck and deals the cards to the players
+     */
     public static void shuffle_and_deal(Card[] deck, Player p1, Player p2, Player p3, Player p4){
         List<Card> s_deck = Arrays.asList(deck);
         Collections.shuffle(s_deck);
@@ -804,6 +833,10 @@ public void startNewRound() {
         p1.Sort_Hand();
     }
 
+
+    /*
+     * This function performs the swaps either to the left or right between the players
+     */
     public static void circle_swaps(Player p1, Player p2, Player p3, Player p4, Card[] temp){
         for(int i = 0;i<3;i++){
             temp[i] = p4.hand[p4.swap[i]];
@@ -814,6 +847,10 @@ public void startNewRound() {
         }
     }
 
+
+    /*
+     * This function performs the swaps across the players
+     */
     public static void across_swaps(Player p1, Player p2, Card[] temp){
         for(int i = 0;i<3;i++){
             temp[i] = p2.hand[p2.swap[i]];
@@ -822,38 +859,25 @@ public void startNewRound() {
         }
     }
 
-    public static boolean valid_swap(int choice, int first, int second){
-        if(choice < 13 && choice > -1){
-            if(choice != first && choice != second){
-                return true;
-            }
-            else{
-                System.out.println("You already picked this card, pick another");
-                return false;
-            }
-        }
-        else{
-            System.out.println("Pick a valid card to swap");
-            return false;
-        }
-    }
 
-
+    /*
+     * This function figures out which player has the 2 of clubs and will go first 
+     */
     public static Integer find_start(Player p1){
         p1.Sort_Hand();
         p1.next.Sort_Hand();
         p1.next.next.Sort_Hand();
         p1.next.next.next.Sort_Hand();
-        if(p1.hand[0].val == 2){
+        if(p1.hand[0].val == 2 && p1.hand[0].suit_char == 'c'){
             return 1;
         }
-        else if(p1.next.hand[0].val == 2){
+        else if(p1.next.hand[0].val == 2 && p1.next.hand[0].suit_char == 'c'){
             return 2;
         }
-        else if(p1.next.next.hand[0].val == 2){
+        else if(p1.next.next.hand[0].val == 2 &&   p1.next.next.hand[0].suit_char == 'c'){
             return 3;
         }
-        else if (p1.next.next.next.hand[0].val == 2){
+        else if (p1.next.next.next.hand[0].val == 2 && p1.next.next.next.hand[0].suit_char == 'c'){
             return 4;
         }
         else{
