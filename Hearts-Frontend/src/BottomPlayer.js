@@ -317,12 +317,14 @@ useEffect(() => {
         ))}
         {gameState === 'Swap' && roundNumber % 4 !== 0 &&(
           <button onClick={handleSwap} className = "Swap-Button" disabled={selectedCards.length !== 3} >
-            Perform Swap
-          </button>
+          {roundNumber % 4 === 1 ? 'Pass Cards Left' : 
+           roundNumber % 4 === 2 ? 'Pass Cards Right' : 
+           roundNumber % 4 === 3 ? 'Pass Cards Across' : 'Perform Swap'}
+        </button>
         )}
         {gameState === 'Swap' && roundNumber % 4 === 0 && (
     <button onClick={handleSkipSwap} className="Swap-Button">
-    SkipSwap
+    No Swap
     </button>
 )}
       </>
