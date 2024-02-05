@@ -6,6 +6,7 @@ public class Player {
 int total;
 String name;
 int score = 0;
+int overall_score = 0;
 Card[] hand = {null, null, null, null, null, null, null, null, null, null, null, null, null};
 Player next;
 int[] swap = {0,-1,-1};
@@ -43,6 +44,15 @@ public void ResetHand(){
 
     public void setScore(int score) {
         this.score = score;
+    }
+
+    // Getter and setter for score
+    public int getOverallScore() {
+        return overall_score;
+    }
+
+    public void setOverallScore(int score) {
+        this.overall_score = score;
     }
 
     

@@ -64,14 +64,14 @@ function ScoreBoard({ gameState, setGameState }) {
   }, [gameState, fetchScores]);
 
   return (
-    <div>
+    <div >
       {roundFinished && (
-  <button onClick={startNewRound}>Start Next Round</button>
-)}
-      <p>Player 1: {scores[0]}</p>
-      <p>Player 2: {scores[1]}</p>
-      <p>Player 3: {scores[2]}</p>
-      <p>Player 4: {scores[3]}</p>
+        <button className = "Round-Button" onClick={startNewRound}>Start Next Round</button>
+      )}
+      <p className = "Score">   P4: {scores[0]}</p>
+      <p className = "Score">   P3: {scores[1]}</p>
+      <p className = "Score">   P2: {scores[2]}</p>
+      <p className = "Score">   You: {scores[3]}</p>
     </div>
   );
 }

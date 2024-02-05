@@ -493,23 +493,53 @@ public void startNewRound() {
         JedisShardInfo shardInfo = new JedisShardInfo("localhost");
         Jedis jedis = new Jedis(shardInfo);
         ObjectMapper mapper = new ObjectMapper();
-        int[] scores = new int[4];
+        int[] scoreBoard = new int[4];
+
         try {
             String gameState = jedis.get("gameState");
             Player p1 = mapper.readValue(jedis.get("p1"), Player.class);
             Player p2 = mapper.readValue(jedis.get("p2"), Player.class);
             Player p3 = mapper.readValue(jedis.get("p3"), Player.class);
             Player p4 = mapper.readValue(jedis.get("p4"), Player.class);
-            scores[0] = p1.score;
-            scores[1] = p2.score;
-            scores[2] = p3.score;
-            scores[3] = p4.score; 
+
+            //Shoot the moon
+            for(int i = 0;i<4;i++){
+                if(p1.score == 26){
+                    p1.score = 0;
+                    p2.score = 26;
+                    p3.score = 26;
+                    p4.score = 26;
+                }
+                else if(p2.score == 26){
+                    p2.score = 0;
+                    p1.score = 26;
+                    p3.score = 26;
+                    p4.score = 26;
+                }
+                else if(p3.score == 26){
+                    p3.score = 0;
+                    p1.score = 26;
+                    p2.score = 26;
+                    p4.score = 26;
+                }
+                else if(p4.score == 26){
+                    p4.score = 0;
+                    p1.score = 26;
+                    p2.score = 26;
+                    p3.score = 26;
+                }
+            }
+            
+            scoreBoard[0] = p1.score;
+            scoreBoard[1] = p2.score;
+            scoreBoard[2] = p3.score;
+            scoreBoard[3] = p4.score; 
             jedis.set("gameState", "Play");  // Update the gameState in Redis
         } catch (Exception e) {
             System.out.println("Exception while getting scores from Redis: " + e.getMessage());
         }
-        System.out.println("Scores from Redis: " + Arrays.toString(scores));
-        return scores;
+        System.out.println("Scores from Redis: " + Arrays.toString(scoreBoard));
+        return scoreBoard;
     }
 
     @CrossOrigin(origins = "http://localhost:3000")

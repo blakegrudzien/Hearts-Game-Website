@@ -43,7 +43,7 @@ function App() {
 
     <div className="App">
       <Header />
-      {!gameStarted && <button onClick={startNewGame}>Start New Game</button>}
+      {!gameStarted && <button className = "Start-Button" onClick={startNewGame}>Start New Game</button>}
      
       {gameStarted && <TopPlayer />}
       
@@ -61,8 +61,7 @@ function App() {
       </div>
     )}
       
-      <Content />
-      <Footer />
+      
     </div>
   );
 }
