@@ -8,7 +8,7 @@ import RightPlayer from './RightPlayer';
 import LeftPlayer from './LeftPlayer';
 import PlayedCards from './PlayedCards';
 import BottomPlayer from './BottomPlayer';
-import ScoreBoard from './ScoreBoard';  // Import ScoreBoard
+import ScoreBoard from './ScoreBoard';  // Import Scoreboard instead of ScoreBoard
 
 function App() {
   localStorage.removeItem('gameStarted');

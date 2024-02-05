@@ -18,7 +18,6 @@ function ScoreBoard({ gameState, setGameState }) {
         throw new Error('HTTP error ' + response.status);
       }
   
-      // After successfully starting a new round, reset roundFinished state
       setRoundFinished(false);
       setGameState("Swap");
     } catch (error) {

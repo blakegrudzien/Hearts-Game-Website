@@ -445,6 +445,11 @@ public void startNewRound() {
         Card[] trick = mapper.readValue(jedis.get("trick"), Card[].class);
         Boolean[] ValidCard = mapper.readValue(jedis.get("ValidCard"), Boolean[].class);
         String gameState = "Swap";
+        /*if(round_number % 4 == 0){
+            gameState = "Play";
+        }*/
+        
+        
         Hearts_Broken = false;
         round_number  +=1;
         trick_number = 0; 
@@ -510,6 +515,9 @@ public void startNewRound() {
     @CrossOrigin(origins = "http://localhost:3000")
     @PostMapping("/performSwap")
     public void swap_cards(@RequestBody int[] swaps) {
+        
+
+
         JedisShardInfo shardInfo = new JedisShardInfo("localhost");
         Jedis jedis = new Jedis(shardInfo);
         ObjectMapper mapper = new ObjectMapper();
@@ -520,6 +528,8 @@ public void startNewRound() {
         int round = 0;
         String gameState = null;
         int turn = 0;
+
+        
         try {
             gameState = jedis.get("gameState");
             p1 = mapper.readValue(jedis.get("p1"), Player.class);
@@ -535,7 +545,28 @@ public void startNewRound() {
         p2.next = p3;
         p3.next = p4;
         p4.next = p1;  
+        System.out.println("Round number before checking swaps: " + round);
+
+        for(int i = 0;i<3;i++){
+            if(swaps[i] == -1){
+                System.out.println("Swaps" + swaps[i]);
+                gameState = "Play";
+                turn = find_start(p1);
+                System.out.println(turn + "has the 2 of clubs");
+   
+                jedis.set("gameState", gameState);
+                return;
+            }
+            System.out.println("Swaps" + swaps[i]);
+        }
+
+
+
         p1.swap = swaps;
+
+
+
+
         p2.choose_swaps();
         p3.choose_swaps();
         p4.choose_swaps();

@@ -14,15 +14,6 @@ const BottomPlayer = ({ gameState, setGameState, turn, setTurn, triggerApp }) =>
   
 
 
-
-
-  console.log('Bottom Player called'); // Log the value of gameState before setting it
-
-  useEffect(() => {
-    console.log('gameState after setting:', gameState); // Log the value of gameState after setting it
-  }, [gameState]); // This hook runs whenever gameState changes
-
-
   const fetchGameState = async () => {
     try {
       const response = await fetch('http://localhost:8080/getGameState', { method: 'GET' });
@@ -33,8 +24,6 @@ const BottomPlayer = ({ gameState, setGameState, turn, setTurn, triggerApp }) =>
       console.error('Error:', error);
     }
   };
-
-
 
   const fetchTurn = async () => {
     try {
@@ -55,10 +44,9 @@ useEffect(() => {
   const fetchAndCheckGameState = async () => {
     await fetchTurn();
     await fetchGameState();
-    console.log("Gamestate in fetchAndCheckGameState is: " + gameState);
-    console.log("Turn in fetchAndCheckGameState is: " + turn);
+    
     if (gameState === 'Play') {
-      console.log("Play state was passed");
+     
       if (turn === 1) {
         playCard().then(validArray => {
           if (validArray) {
@@ -134,11 +122,6 @@ const player_plays = async (index) => {
 
     console.log("ImageUrls before calling  hand: " + imageUrls);
 
-
-
-
-
-
   const response2 = await fetch('http://localhost:8080/getPlayerHand', { method: 'GET' });
   let handData = await response2.text();
   await setValid(Array(JSON.parse(handData).length).fill(false));
@@ -151,8 +134,6 @@ const player_plays = async (index) => {
   }
 
 };
-
-
 
 
 useEffect(() => {
@@ -196,11 +177,43 @@ useEffect(() => {
     }
   };
 
+  const handleSkipSwap = async () => {
+    try {
+      const response = await fetch('http://localhost:8080/performSwap', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify([-1, -1, -1]),  // Send [-1, -1, -1] to the backend
+      });
+  
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      // After the swap operation is done, get the updated player's hand
+      const handResponse = await fetch('http://localhost:8080/getPlayerHand');
+      const handData = await handResponse.json();
+      setImageUrls(handData); // replace with actual data property
+  
+      // Fetch the updated game state
+      const gameStateResponse = await fetch('http://localhost:8080/getGameState');
+      const gameStateData = await gameStateResponse.text();
+      setGameState(gameStateData); // replace with actual data property
+    } catch (error) {
+      console.error('Error:', error);
+    }
+    setValid(Array(imageUrls.length).fill(true));
+    setSelectedCards([]);
+    setShowSwapButton(false);
+  };
+
+
+
+
+  
 
   const handleSwap = async () => {
-
     try {
-      
       const response = await fetch('http://localhost:8080/performSwap', {
         method: 'POST',
         headers: {
@@ -237,12 +250,11 @@ useEffect(() => {
 
   
   const handleCardSelection = (index) => {
-    
-    // If the card is already selected, deselect it
+   
     if (selectedCards.includes(index)) {
       setSelectedCards(selectedCards.filter(cardIndex => cardIndex !== index));
     } else {
-      // If less than 3 cards are selected, select the card
+ 
       if (selectedCards.length < 3) {
         setSelectedCards([...selectedCards, index]);
       }
@@ -260,15 +272,13 @@ useEffect(() => {
           setRoundNumber(parseInt(roundNum));
           console.log("Round number = " + roundNumber);
   
-          if(roundNumber % 4 === 0){
-            setGameState("Play");
-          }
-            
+
             const handResponse = await fetch('http://localhost:8080/getPlayerHand');
           
             if (handResponse.ok) {
               const handData = await handResponse.json();
               setImageUrls(handData); // replace with actual data property
+              
             } else {
               console.error('Error:', handResponse.status, handResponse.statusText);
             }
@@ -305,11 +315,16 @@ useEffect(() => {
             </button>
           )
         ))}
-        {gameState === 'Swap' && (
+        {gameState === 'Swap' && roundNumber % 4 !== 0 &&(
           <button onClick={handleSwap} className = "Swap-Button" disabled={selectedCards.length !== 3} >
             Perform Swap
           </button>
         )}
+        {gameState === 'Swap' && roundNumber % 4 === 0 && (
+    <button onClick={handleSkipSwap} className="Swap-Button">
+    SkipSwap
+    </button>
+)}
       </>
     </div>
   );
