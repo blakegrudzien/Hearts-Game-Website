@@ -1,3 +1,9 @@
+
+/**
+ * This component deals with the title of the application
+ */
+
+
 import './index.css';
 
 const Header = () => {
@@ -9,8 +15,6 @@ const Header = () => {
   return (
     <header className = "Title">
       <h1>Hearts Card Game</h1>
-
-
     </header>
   )
 }

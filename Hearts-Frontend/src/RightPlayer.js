@@ -1,17 +1,24 @@
+ /**
+ * This function deals with printing the right player's hand
+ */
+
+
 import './index.css';
 import React, { useState, useEffect } from 'react';
 
 const RightPlayer = () => {
   const [cardCount, setCardCount] = useState(0);
 
+
+
+   /**
+ * This function prints out 13 cards for the right player upon the component being called
+ */
   useEffect(() => {
     const getComputerHand = async () => {
-      // Replace with your actual fetch call
       const response = await fetch('http://localhost:8080/getComputerHand?playerName=p3', { method: 'GET' });
       const cardCount = await response.text();
       setCardCount(parseInt(cardCount, 10));
-
-      console.log(cardCount);
     };
 
     getComputerHand();

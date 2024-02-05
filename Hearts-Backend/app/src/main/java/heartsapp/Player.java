@@ -1,6 +1,6 @@
+
 package heartsapp;
 
-import java.util.List;
 
 public class Player {
 int total;
@@ -14,12 +14,13 @@ boolean Hearts_broken;
 String[] imageUrls;
 
 
+
+//Getter and Setter for each instance variable
 public Player() {
 }
 
 Player(String n){
     this.name = n;
-
 }
 
 public void ResetHand(){
@@ -28,7 +29,7 @@ public void ResetHand(){
     }
 }
 
-// Getter and setter for name
+
     public String getName() {
         return name;
     }
@@ -37,7 +38,7 @@ public void ResetHand(){
         this.name = name;
     }
 
-    // Getter and setter for score
+
     public int getScore() {
         return score;
     }
@@ -46,7 +47,7 @@ public void ResetHand(){
         this.score = score;
     }
 
-    // Getter and setter for score
+   
     public int getOverallScore() {
         return overall_score;
     }
@@ -55,13 +56,20 @@ public void ResetHand(){
         this.overall_score = score;
     }
 
+    public Card[] getHand() {
+        return this.hand;
+    }
+    
+    public void setImageUrls(String[] imageUrls) {
+        this.imageUrls = imageUrls;
+    }
     
 
+    
+//constructs and returns the corresponding imageUrls for the player's hand
 public String[] getImageUrls() {
-    // Initialize an array with the URLs
     String[] imageUrls = new String[13];
 
-    // Fill the array with URLs
     for (int i = 0; i < 13; i++) {
         if(this.hand[i] == null){
             imageUrls[i] = null;
@@ -71,27 +79,14 @@ public String[] getImageUrls() {
         if (Cur.val < 10) {
             imageUrls[i] = "/images/Cards/Modern/" + Cur.suit_char + "0" + Cur.val + ".jpg";
         } else if (Cur.val == 14){
-
             imageUrls[i] = "/images/Cards/Modern/" + Cur.suit_char + "01.jpg";
-
         }
         else{
             imageUrls[i] = "/images/Cards/Modern/" + Cur.suit_char + Cur.val + ".jpg";
-
         }
     }
-
     return imageUrls;
 }
-
-public Card[] getHand() {
-    return this.hand;
-}
-
-public void setImageUrls(String[] imageUrls) {
-    this.imageUrls = imageUrls;
-}
-
 
 
 //chooses the swaps from the computer, opting for the highest valued cards
@@ -113,15 +108,7 @@ public void setImageUrls(String[] imageUrls) {
 
     }
 
-//prints out the player's hand
-    public void print_hand(){
-        for(int i = 0;i<13;i++) {
-            if(!(this.hand[i].played)) {
-                System.out.print("    " + this.hand[i].signature + "(" + i + ")");
-            }
-        }
-        System.out.println(" ");
-    }
+
 
 //the computer plays a card, with simple but strong strategy
     public Integer play_card(Card[] Trick, int cards_played, boolean Hearts_broken, int trick_number){
@@ -142,7 +129,6 @@ public void setImageUrls(String[] imageUrls) {
                 for (i = 0; i < 13; i++) {
                     if (this.hand[i] !=null && this.hand[i].val < min_val ) {
                         if (Hearts_broken || this.hand[i].suit != 16) { //doesn't let computer play a heart if hearts are not broken
-
                             min = i;
                             min_val = this.hand[i].val;
                         }
@@ -159,6 +145,7 @@ public void setImageUrls(String[] imageUrls) {
                     break;
                 }
             }
+
             //if the computer does not have a card in the given suit, it will play the card with the most points, then the highest value
             if(min == -1){
                 min = 0;
@@ -183,20 +170,16 @@ public void setImageUrls(String[] imageUrls) {
         Trick[cards_played] = this.hand[min];
 
         if(!Hearts_broken && this.hand[min].suit == 16){
-            System.out.println("Hearts Have Been Broken");
             Hearts_broken = true;
         }
-        System.out.println(this.name + " -  " + this.hand[min].signature);
-
-
-        //this.hand[min] = null;
+      
         Trick[cards_played].Holder = this;
 
         return min;
     }
 
 
-    
+    //Sorts the hand by suit and value
 
     public void Sort_Hand(){
         int i, j;
@@ -205,20 +188,13 @@ public void setImageUrls(String[] imageUrls) {
         for (i = 1; i < 13; i++) {
             key = this.hand[i];
             j = i - 1;
- 
-        // Move elements of arr[0..i-1],
-        // that are greater than key, 
-        // to one position ahead of their
-        // current position
         while (j >= 0 && this.hand[j].Card_Number > key.Card_Number) {
             this.hand[j + 1] = this.hand[j];
             j = j - 1;
         }
         this.hand[j + 1] = key;
+        }   
     }
-        
-    }
-
 }
 
 

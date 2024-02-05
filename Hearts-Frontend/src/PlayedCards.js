@@ -1,33 +1,51 @@
+/**
+ * This function deals with the cards that have been played in 
+ * the trick, displaying and tracking them, it is also where 
+ * the computer makes its decisions for the card to play
+ */
+
 import React, { useState, useEffect } from 'react';
 
 const PlayedCards = ({ setGameState, gameState, turn , setTurn}) => {
   const [cardUrls, setCardUrls] = useState([]);
-  const [showButton, setShowButton] = useState(false);
+  
+
+
+  /**
+ * This function calls the backend function playCard, which plays a card and updates the trick
+ */
 
   const playCard = async () => {
-    console.log("Playing card...");
     return fetch('http://localhost:8080/playCard', { method: 'POST' })
-      .catch(error => console.error('Error:', error));  // Handle any errors
+      .catch(error => console.error('Error:', error));  
   };
 
  
+  /**
+ * This function calls the backend function clearTrick, 
+ * which clears the trick and updates the gamestate, 
+ * the gamestate is then updated here and the updated trick is printed
+ */
+
   const clearTrick = async () => {
     console.log("Clearing trick...");
     try {
       const response = await fetch('http://localhost:8080/clearTrick', { method: 'POST' });
-  
       if (!response.ok) {
         throw new Error('Network response was not ok');
       }
-  
-      // After clearing the trick, update the gameState
-      await setGameState('Scoring');  // Replace 'newGameState' with the actual new gameState
+      await setGameState('Scoring');  
     } catch (error) {
       console.error('Error:', error);
     }
     printTrick();
   };
 
+
+
+  /**
+ * This function gets the turn from the backend and updates the turn state
+ */
   const fetchTurn = async () => {
     try {
       const response = await fetch('http://localhost:8080/getturn');
@@ -38,8 +56,12 @@ const PlayedCards = ({ setGameState, gameState, turn , setTurn}) => {
     }
   };
 
+
+  /**
+ * This function has the computer play a card if it is not the user's 
+ * turn, by calling the playCard function and then printing the trick
+ */
   useEffect(() => {
-    console.log("UseEffect in PlayedCards is called");
     const playAndPrint = async () => {
       if (gameState === "Play" && turn !== 1) {
         await playCard();
@@ -53,7 +75,9 @@ const PlayedCards = ({ setGameState, gameState, turn , setTurn}) => {
 
 
 
-
+  /**
+ * This function prints the trick, if the trick is full it will set the gamestate to "Clearing", the first step to reset it
+ */
   const printTrick = async () => {
     try {
       const response = await fetch('http://localhost:8080/getTrick');
@@ -64,9 +88,7 @@ const PlayedCards = ({ setGameState, gameState, turn , setTurn}) => {
       if(trick.length === 4){
         console.log("Trick is full, clearing trick");
         await setGameState("Clearing");
-        setShowButton(true);
-      } else {
-        setShowButton(false);
+        
       }
 
     } catch (error) {
@@ -74,15 +96,17 @@ const PlayedCards = ({ setGameState, gameState, turn , setTurn}) => {
     }
   };
 
-  console.log('PlayedCards is re-rendering');
+ 
   
-
+/**
+ * This loads the cards in the trick, as well as the button to clear the trick
+ */
   return (
     <div  style={{ display: 'flex', justifyContent: 'center' }}>
       {cardUrls.map((url, index) => (
         url && <img key={index} src={url} alt="Card back" className="played-cards" style={{ zIndex: index + 1 }} />
       ))}
-      {showButton && (
+      { (
         <button className = "Clear-Trick" onClick={clearTrick}>Clear Trick</button>
       )}
     </div>

@@ -1,5 +1,4 @@
 import './index.css';
-import PlayedCards from './PlayedCards';
 import { useState, useEffect } from 'react';
 
 const BottomPlayer = ({ gameState, setGameState, turn, setTurn, triggerApp }) => {
@@ -14,6 +13,38 @@ const BottomPlayer = ({ gameState, setGameState, turn, setTurn, triggerApp }) =>
   
 
 
+  
+  /**
+ * This function is called whenever the game is started, and it fetches the gamestate, the player's hand and the round number
+ */
+  useEffect(() => {
+    const startNewGame = async () => {
+      try {
+        let response = await fetch('http://localhost:8080/startGame', { method: 'POST' });
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+      response = await fetch('http://localhost:8080/getGameState', { method: 'GET' });
+      let gameState = await response.text();
+      setGameState(gameState);
+
+
+      response = await fetch('http://localhost:8080/getPlayerHand', { method: 'GET' });
+      let handData = await response.text();
+      setImageUrls(JSON.parse(handData)); 
+      } catch (error) {
+        console.error('Error:', error);
+      }
+    };
+
+    startNewGame();
+  }, []);
+
+
+  /**
+ * This function gets the gamestate from the backend and changes it in the frontend
+ */
   const fetchGameState = async () => {
     try {
       const response = await fetch('http://localhost:8080/getGameState', { method: 'GET' });
@@ -25,6 +56,11 @@ const BottomPlayer = ({ gameState, setGameState, turn, setTurn, triggerApp }) =>
     }
   };
 
+
+
+  /**
+ * This function gets the turn from the backend and changes it in the frontend
+ */
   const fetchTurn = async () => {
     try {
       const response = await fetch('http://localhost:8080/getturn', { method: 'GET' });
@@ -40,177 +76,110 @@ useEffect(() => {
   console.log("Turn in Bottom Player is: " + turn);
   console.log("Gamestate in Bottom Player is: " + gameState);
   
-  
-  const fetchAndCheckGameState = async () => {
-    await fetchTurn();
-    await fetchGameState();
     
-    if (gameState === 'Play') {
-     
-      if (turn === 1) {
-        playCard().then(validArray => {
-          if (validArray) {
-            setValid(validArray);
-          }
-        });
-      } else {
-        console.log("attempt to reload playedcards   " + gameState);
-        triggerApp();
-      }
-    }
-    await fetchTurn();
-  };
-
-  fetchAndCheckGameState();
-}, [turn, gameState]);
-
-
-
-const playCard = async () => {
-  try {
-    console.log("trying to get valid array");
-    console.log("playCard function called from bottomplayer");
-    const response = await fetch('http://localhost:8080/playCard', {
-      method: 'POST',
-    });
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const data = await response.json();
-    console.log("just got valid array");
-    console.log("Response data: ", data);
-    console.log("Valid array length: ", data.length);
-
-    if (data) {
-      return data;
-    } else {
-      console.error('Data is undefined');
-    }
-  } catch (error) {
-    console.error('Error:', error);
-  }
-}
-
-useEffect(() => {
-  console.log("useEffect ran");
-  console.log("Valid array: ", valid);
-}, [valid]);
-
-
-const player_plays = async (index) => {
-  console.log('player_plays called');
-  try {
-    // Call the Player_plays function in the backend
-    const response = await fetch('http://localhost:8080/player_plays', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ index }),
-    });
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    console.log("before printing trick" + imageUrls);
-
-    printTrick();
-    fetchTurn();
-
-
-    console.log("ImageUrls before calling  hand: " + imageUrls);
-
-  const response2 = await fetch('http://localhost:8080/getPlayerHand', { method: 'GET' });
-  let handData = await response2.text();
-  await setValid(Array(JSON.parse(handData).length).fill(false));
-  await setImageUrls(JSON.parse(handData)); // replace with actual data property
-  console.out("ImageUrls after playing: " + imageUrls);
-
-    
-  } catch (error) {
-    console.error('Error:', error);
-  }
-
-};
-
-
-useEffect(() => {
-  console.log("ImageUrls after playing: ", imageUrls);
-}, [imageUrls]);
-
-  useEffect(() => {
-    const startNewGame = async () => {
-      try {
-        let response = await fetch('http://localhost:8080/startGame', { method: 'POST' });
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
+    const fetchAndCheckGameState = async () => {
+      await fetchTurn();
+      await fetchGameState();
+      
+      if (gameState === 'Play') {
+      
+        if (turn === 1) {
+          playCard().then(validArray => {
+            if (validArray) {
+              setValid(validArray);
+            }
+          });
+        } else {
+          triggerApp();
         }
-
-        // After starting a new game, get the current game state
-      response = await fetch('http://localhost:8080/getGameState', { method: 'GET' });
-      let gameState = await response.text();
-      setGameState(gameState); // replace with actual data property
-
-
-      response = await fetch('http://localhost:8080/getPlayerHand', { method: 'GET' });
-      let handData = await response.text();
-      setImageUrls(JSON.parse(handData)); // replace with actual data property
-      } catch (error) {
-        console.error('Error:', error);
       }
+      await fetchTurn();
     };
 
-    startNewGame();
-  }, []);
+    fetchAndCheckGameState();
+  }, [turn, gameState]);
 
 
-  const printTrick = async () => {
+
+
+  /**
+ * This function calls the playCard function in the backend
+ */
+  const playCard = async () => {
     try {
-      const response = await fetch('http://localhost:8080/getTrick');
-      const trick = await response.json();  // Parse the response as JSON
-      console.log("Trick:", trick);
-     // setCardUrls(trick);  // Store the trick in the cardUrls state
+      const response = await fetch('http://localhost:8080/playCard', {
+        method: 'POST',
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json();
+      if (data) {
+        return data;
+      } else {
+        console.error('Data is undefined');
+      }
     } catch (error) {
       console.error('Error:', error);
     }
-  };
+  }
 
-  const handleSkipSwap = async () => {
+
+
+/**
+ * This function calls the player_plays function in the backend which lets the player play a card 
+ * that was deemed valid by the valid array returned from the playcard function
+ */
+  const player_plays = async (index) => {
     try {
-      const response = await fetch('http://localhost:8080/performSwap', {
+      const response = await fetch('http://localhost:8080/player_plays', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify([-1, -1, -1]),  // Send [-1, -1, -1] to the backend
+        body: JSON.stringify({ index }),
       });
-  
+
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      // After the swap operation is done, get the updated player's hand
-      const handResponse = await fetch('http://localhost:8080/getPlayerHand');
-      const handData = await handResponse.json();
-      setImageUrls(handData); // replace with actual data property
-  
-      // Fetch the updated game state
-      const gameStateResponse = await fetch('http://localhost:8080/getGameState');
-      const gameStateData = await gameStateResponse.text();
-      setGameState(gameStateData); // replace with actual data property
+
+      printTrick();
+      fetchTurn();
+
+    const response2 = await fetch('http://localhost:8080/getPlayerHand', { method: 'GET' });
+    let handData = await response2.text();
+    await setValid(Array(JSON.parse(handData).length).fill(false));
+    await setImageUrls(JSON.parse(handData)); // replace with actual data property
+ 
     } catch (error) {
       console.error('Error:', error);
     }
-    setValid(Array(imageUrls.length).fill(true));
-    setSelectedCards([]);
-    setShowSwapButton(false);
+  };
+
+
+
+  
+/**
+ * This function gets the trick from the backend and prints it to the console
+ */
+  const printTrick = async () => {
+    try {
+      const response = await fetch('http://localhost:8080/getTrick');
+      const trick = await response.json();  
+    } catch (error) {
+      console.error('Error:', error);
+    }
   };
 
 
 
 
-  
+
+  /**
+ * This function sends the 3 selected cards to the backend to then swap, 
+ * this function then prints the new cards and starts the playing phase
+ */
 
   const handleSwap = async () => {
     try {
@@ -225,30 +194,63 @@ useEffect(() => {
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-       // After the swap operation is done, get the updated player's hand
+
       const handResponse = await fetch('http://localhost:8080/getPlayerHand');
     const handData = await handResponse.json();
-    setImageUrls(handData); // replace with actual data property
+    setImageUrls(handData); 
 
-    // Fetch the updated game state
+
     const gameStateResponse = await fetch('http://localhost:8080/getGameState');
     const gameStateData = await gameStateResponse.text();
-    setGameState(gameStateData); // replace with actual data property
+    setGameState(gameStateData); 
 
   } catch (error) {
     console.error('Error:', error);
   }
 
-    // Reset the selectedCards array and hide the swap button
     setValid(Array(imageUrls.length).fill(true));
     setSelectedCards([]);
     setShowSwapButton(false);
   };
 
   
-
-
+ /**
+ * This is the same as the function above, but for the cacse where there is no swapping (every 4th round) the 
+ * function automatically sends three impossible cards so the backend function knows to skip the swapping
+ */
+  const handleSkipSwap = async () => {
+    try {
+      const response = await fetch('http://localhost:8080/performSwap', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify([-1, -1, -1]),  
+      });
   
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const handResponse = await fetch('http://localhost:8080/getPlayerHand');
+      const handData = await handResponse.json();
+      setImageUrls(handData); 
+    
+
+      const gameStateResponse = await fetch('http://localhost:8080/getGameState');
+      const gameStateData = await gameStateResponse.text();
+      setGameState(gameStateData);
+    } catch (error) {
+      console.error('Error:', error);
+    }
+    setValid(Array(imageUrls.length).fill(true));
+    setSelectedCards([]);
+    setShowSwapButton(false);
+  };
+  
+
+   /**
+ * This function is called whenever the player selects a card, and it adds the card to the selected cards array
+ */
   const handleCardSelection = (index) => {
    
     if (selectedCards.includes(index)) {
@@ -261,6 +263,12 @@ useEffect(() => {
     }
   };
 
+
+   /**
+ * This function is called whenever the gamestate changes, and it fetches the 
+ * player's hand and the round number and prints the users cards
+ */
+
   useEffect(() => {
     const fetchHandData = async () => {
       if(gameState === 'Swap'){
@@ -270,7 +278,6 @@ useEffect(() => {
           
           let roundNum = await roundResponse.text();
           setRoundNumber(parseInt(roundNum));
-          console.log("Round number = " + roundNumber);
   
 
             const handResponse = await fetch('http://localhost:8080/getPlayerHand');
@@ -293,8 +300,11 @@ useEffect(() => {
   }, [gameState]);
 
   
-  console.log("BottomPlayer is rendering");
-  console.log("Valid is:", valid);
+/**
+ * Returns the Cards of the player and the swap button if the game state is swap
+ */
+
+
   return (
     <div className="bottom-player">
       <>

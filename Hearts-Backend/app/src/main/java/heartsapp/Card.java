@@ -1,8 +1,5 @@
 package heartsapp;
 
-
-
-// No changes needed for this code block.
 public class Card {
     int val; // The value of the
     int suit;   //The suit of the card (1 - c,2 - s,3 - d,4 - h)
@@ -13,6 +10,10 @@ public class Card {
     boolean played;
     String imageURL;
     char suit_char;
+
+
+
+    //Getters and Setter for every instance variable
 
 
     public int getVal() {
@@ -75,17 +76,6 @@ public class Card {
         this.played = played;
     }
 
-    
-
-    
-
-    
-
-    
-
-
-
-
 
 //constructor
     public Card(){
@@ -112,10 +102,8 @@ public class Card {
         }
         else if(s == 16){
             this.suit_char = 'h';
-
         }
 
-        
         played = false;
         if(this.val<10){
             imageURL = "/images/Cards/Modern/" + this.suit_char + "0" + this.val + ".jpg";
@@ -127,14 +115,8 @@ public class Card {
         else{
             imageURL = "/images/Cards/Modern/" + this.suit_char + this.val + ".jpg";
         }
-        
-        
     }
 
-
-
-
-    
 
 //constructor
     public Card(int v, int s, int p, StringBuilder signature){
@@ -166,8 +148,7 @@ public class Card {
         else{
             imageURL = "/images/Cards/Modern/" + this.suit_char + this.val + ".jpg";
         }
-        
-
+    
     }
 
 //adds the entered signature
