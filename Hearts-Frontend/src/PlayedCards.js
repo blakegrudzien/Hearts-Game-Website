@@ -28,7 +28,7 @@ const PlayedCards = ({ setGameState, gameState, turn , setTurn}) => {
  */
 
   const clearTrick = async () => {
-    console.log("Clearing trick...");
+    
     try {
       const response = await fetch('http://localhost:8080/clearTrick', { method: 'POST' });
       if (!response.ok) {
@@ -82,11 +82,11 @@ const PlayedCards = ({ setGameState, gameState, turn , setTurn}) => {
     try {
       const response = await fetch('http://localhost:8080/getTrick');
       const trick = await response.json();  // Parse the response as JSON
-      console.log("Trick:", trick);
+      
       setCardUrls(trick);  // Store the trick in the cardUrls state
 
       if(trick.length === 4){
-        console.log("Trick is full, clearing trick");
+        
         await setGameState("Clearing");
         
       }

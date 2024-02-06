@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
@@ -40,7 +41,7 @@ public class GameController {
         String gameState = null;
         try {
             gameState = jedis.get("gameState");
-            System.out.println("gameState from Redis: " + gameState);
+            
         } catch (Exception e) {
             System.out.println("Exception while getting gameState from Redis: " + e.getMessage());
         }
@@ -60,7 +61,7 @@ public class GameController {
         Integer turn = null;
         try {
             turn = Integer.parseInt(jedis.get("turn"));
-            System.out.println("turn Redis: " + turn);
+            
         } catch (Exception e) {
             System.out.println("Exception while getting turn from Redis: " + e.getMessage());
         }
@@ -82,7 +83,7 @@ public class GameController {
         try {
             String trickJson = jedis.get("trick");
             trick = mapper.readValue(trickJson, Card[].class);
-            System.out.println("Trick from Redis: " + Arrays.toString(trick));
+            
         } catch (Exception e) {
             System.out.println("Exception while getting trick from Redis: " + e.getMessage());
         }
@@ -175,7 +176,7 @@ public class GameController {
         JedisShardInfo shardInfo = new JedisShardInfo("localhost");
         Jedis jedis = new Jedis(shardInfo);
         int trick_number = Integer.parseInt(jedis.get("trick_number"));
-        System.out.println("Trick number from Redis: " + trick_number);
+        
         return trick_number;
     }
 
@@ -190,7 +191,7 @@ public class GameController {
     @CrossOrigin(origins = "http://localhost:3000")
     @PostMapping("/playCard")
     public Object playCard() throws JsonMappingException, JsonProcessingException {
-        System.out.println("playCard() called");
+        
         JedisShardInfo shardInfo = new JedisShardInfo("localhost");
         Jedis jedis = new Jedis(shardInfo);
         ObjectMapper mapper = new ObjectMapper();
@@ -211,6 +212,18 @@ public class GameController {
         boolean Hearts_Broken = Boolean.parseBoolean(heartsBrokenJson);
         int turn = Integer.parseInt(turnJson);
         int trick_number = Integer.parseInt(trick_numberJson);
+
+        
+
+
+
+
+
+
+
+
+
+
         if(trick_number == 13){
             gameState = "End";
             return null;
@@ -227,7 +240,7 @@ public class GameController {
             return null;
         }
         if(turn == 1){
-            System.out.println("player 1 called it");
+            
             gameState = "Play";
             boolean[] valid = new boolean[]{false, false, false, false, false, false, false, false, false, false, false, false, false};
             boolean possible_play = false;
@@ -238,7 +251,7 @@ public class GameController {
                     return valid;
                 }  
                 if(Hearts_Broken == true){
-                    System.out.println("First Card and Hearts are Broken");
+                    
                     for(int i = 0;i<13;i++){
                         if(p1.hand[i]!=null){
                             valid[i] = true;       
@@ -246,7 +259,7 @@ public class GameController {
                     }       
                 }
                 else{
-                    System.out.println("First Card and Hearts are Not Broken");
+                    
                     for(int i = 0;i<13;i++){
                         if(p1.hand[i]!=null && p1.hand[i].suit_char != 'h'){
                             valid[i] = true;
@@ -266,7 +279,7 @@ public class GameController {
             else{
                
                 char trick_char = trick[0].suit_char;
-                System.out.println("not the first Card and Suit is: " + trick_char);
+                
                 for(int i = 0;i<13;i++){
                     if(p1.hand[i]!=null && p1.hand[i].suit_char == trick_char){
                         valid[i] = true;
@@ -282,35 +295,27 @@ public class GameController {
                     }
                 }                   
             }
-            for(int i = 0;i<13;i++){
-                if(valid[i] == true){
-                    System.out.println(valid[i]);
-                }
-            }
-            for( int i = 0;i<13;i++){  
-                if(valid[i] == true){
-                    System.out.println(p1.hand[i].imageURL);
-                }     
-            }
-            System.out.println(Arrays.toString(valid));
+            
+            
+            
             return valid;
         }
         else if(turn == 2){
-            System.out.println("player 2 called it");
+            
             played = p2.play_card(trick, num, Hearts_Broken, trick_number);
             play = p2.hand[played];
             turn = 3;
             p2.hand[played] = null;
         }
         else if(turn == 3){
-            System.out.println("player 3 called it");
+            
             played = p3.play_card(trick, num, Hearts_Broken, trick_number);
             play = p3.hand[played];
             turn = 4;
             p3.hand[played] = null;
         }
         else{
-            System.out.println("player 4 called it");
+            
             played = p4.play_card(trick, num, Hearts_Broken, trick_number);
             play = p4.hand[played];
             turn = 1;
@@ -373,12 +378,8 @@ public class GameController {
         int max = trick[0].val;
         trick[0] = null;
         trickNumber += 1;
-        System.out.println(p1.name);
-        for(int i = 0;i<4;i++){
-            if(trick[i] != null){
-                System.out.println(trick[i].Holder.name);
-            }
-        }
+        
+        
         for(int i = 1;i<4;i++){
             if(trick[i].suit_char == suit_char){
                 if(trick[i].val > max){
@@ -388,25 +389,24 @@ public class GameController {
             }
             points+=trick[i].point_value;
         }
-        System.out.println("Max is: " + max);
-        System.out.println("Winner is: " + winner.name);
+        
         if(winner.name.equals("Player 1")){
-            System.out.println("Player 1 won the trick");
+            
             p1.score += points;
             turn = 1;
         }
         else if(winner.name.equals("Player 2")){
-            System.out.println("Player 2 won the trick");
+           
             p2.score += points;
             turn = 2;
         }
         else if(winner.name.equals("Player 3")){
-            System.out.println("Player 3 won the trick");
+           
             p3.score += points;
             turn = 3;
         }
         else{
-            System.out.println("Player 4 won the trick");
+            
             p4.score += points;
             turn = 4;
         }
@@ -415,8 +415,7 @@ public class GameController {
             trick[i] = null;
         }
         gameState = "Scoring";
-        System.out.println("Trick Cleared and Gamestate is: " + gameState);
-        System.out.println("Trick Cleared and Turn is: " + turn);
+        
 
         try {
             jedis.set("trick_number", Integer.toString(trickNumber));
@@ -478,7 +477,7 @@ public class GameController {
             p3.Sort_Hand();
             p4.Sort_Hand();
             turn = find_start(p1);
-            System.out.println("p1's new hand: " + Arrays.toString(p1.getImageUrls()) + " and turn is: " + turn);
+            
             jedis.set("p1", mapper.writeValueAsString(p1));
             jedis.set("p2", mapper.writeValueAsString(p2));
             jedis.set("p3", mapper.writeValueAsString(p3));
@@ -506,46 +505,111 @@ public class GameController {
         Jedis jedis = new Jedis(shardInfo);
         ObjectMapper mapper = new ObjectMapper();
         int[] scoreBoard = new int[4];
+        System.out.println("Getting scores from Redis");
 
         try {
+
             String gameState = jedis.get("gameState");
             Player p1 = mapper.readValue(jedis.get("p1"), Player.class);
             Player p2 = mapper.readValue(jedis.get("p2"), Player.class);
             Player p3 = mapper.readValue(jedis.get("p3"), Player.class);
             Player p4 = mapper.readValue(jedis.get("p4"), Player.class);
-
-            //Shoot the moon
-            for(int i = 0;i<4;i++){
-                if(p1.score == 26){
-                    p1.score = 0;
-                    p2.score = 26;
-                    p3.score = 26;
-                    p4.score = 26;
-                }
-                else if(p2.score == 26){
-                    p2.score = 0;
-                    p1.score = 26;
-                    p3.score = 26;
-                    p4.score = 26;
-                }
-                else if(p3.score == 26){
-                    p3.score = 0;
-                    p1.score = 26;
-                    p2.score = 26;
-                    p4.score = 26;
-                }
-                else if(p4.score == 26){
-                    p4.score = 0;
-                    p1.score = 26;
-                    p2.score = 26;
-                    p3.score = 26;
-                }
-            }
             
-            scoreBoard[0] = p1.score;
-            scoreBoard[1] = p2.score;
-            scoreBoard[2] = p3.score;
-            scoreBoard[3] = p4.score; 
+            System.out.println("After fetching players");
+            String trickNumberString = jedis.get("trick_number");
+            int trickNumber = Integer.parseInt(trickNumberString);
+
+            System.out.println("After fetching scores");
+
+            System.out.println("Trick number" + trickNumber);
+            
+
+
+            if(trickNumber == 13){
+                System.out.println("Checking for moon and resetting scores");
+
+                
+                    System.out.println("p1 score: " + p1.score);
+                    System.out.println("p2 score: " + p2.score);
+                    System.out.println("p3 score: " + p3.score);
+                    System.out.println("p4 score: " + p4.score);
+
+
+                    if(p1.score == 26){
+                        p1.score = 0;
+                        p2.score = 26;
+                        p3.score = 26;
+                        p4.score = 26;
+                    }
+                    else if(p2.score == 26){
+                        p2.score = 0;
+                        p1.score = 26;
+                        p3.score = 26;
+                        p4.score = 26;
+                    }
+                    else if(p3.score == 26){
+                        p3.score = 0;
+                        p1.score = 26;
+                        p2.score = 26;
+                        p4.score = 26;
+                    }
+                    else if(p4.score == 26){
+                        p4.score = 0;
+                        p1.score = 26;
+                        p2.score = 26;
+                        p3.score = 26;
+                    }
+
+
+                    System.out.println("p1 score: " + p1.score);
+                    System.out.println("p2 score: " + p2.score);
+                    System.out.println("p3 score: " + p3.score);
+                    System.out.println("p4 score: " + p4.score);
+
+
+                    
+                p1.overall_score += p1.score;
+                p2.overall_score += p2.score;
+                p3.overall_score += p3.score;
+                p4.overall_score += p4.score;
+
+                p1.score = 0;
+                p2.score = 0;
+                p3.score = 0;
+                p4.score = 0;
+
+
+
+            }
+
+            System.out.println("p1 score: " + p1.score);
+            System.out.println("p2 score: " + p2.score);
+            System.out.println("p3 score: " + p3.score);
+            System.out.println("p4 score: " + p4.score);
+
+
+            System.out.println("p1 overall score: " + p1.overall_score);
+            System.out.println("p2 overall score: " + p2.overall_score);
+            System.out.println("p3 overall score: " + p3.overall_score);
+            System.out.println("p4 overall score: " + p4.overall_score);
+
+
+            
+
+            
+            scoreBoard[0] = p1.score + p1.overall_score;
+            scoreBoard[1] = p2.score + p2.overall_score;
+            scoreBoard[2] = p3.score + p3.overall_score;
+            scoreBoard[3] = p4.score + p4.overall_score; 
+
+            jedis.set("p1", mapper.writeValueAsString(p1));
+            jedis.set("p2", mapper.writeValueAsString(p2));
+            jedis.set("p3", mapper.writeValueAsString(p3));
+            jedis.set("p4", mapper.writeValueAsString(p4));
+
+
+
+
             jedis.set("gameState", "Play");  // Update the gameState in Redis
         } catch (Exception e) {
             System.out.println("Exception while getting scores from Redis: " + e.getMessage());
@@ -587,24 +651,71 @@ public class GameController {
         } catch (Exception e) {
             System.out.println("Exception while getting players and round number from Redis: " + e.getMessage());
         }
+
+        System.out.println("Before Swapping");
+
+        for(int i = 0; i<13;i++){
+            if(p1.hand[i] == null){
+                System.out.print("Null ");
+            }
+            else{
+                System.out.print(p1.hand[i].signature + " ");
+            }
+        }
+        System.out.println("p2 hand:");
+        for(int i = 0; i<13;i++){
+            if(p2.hand[i] == null){
+                System.out.print("Null ");
+            }
+            else{
+                System.out.print(p2.hand[i].signature + " ");
+            }
+        }
+        System.out.println("p3 hand:");
+        for(int i = 0; i<13;i++){
+            if(p3.hand[i] == null){
+                System.out.print("Null ");
+            }
+            else{
+                System.out.print(p3.hand[i].signature + " ");
+            }
+        }
+        System.out.println("p4 hand:");
+        for(int i = 0; i<13;i++){
+            if(p4.hand[i] == null){
+                System.out.print("Null ");
+            }
+            else{
+                System.out.print(p4.hand[i].signature + " ");
+            }
+        }
+        
+        
+
+        
+
+        
+
         p1.next = p2;
         p2.next = p3;
         p3.next = p4;
         p4.next = p1;  
-        System.out.println("Round number before checking swaps: " + round);
+        
 
         for(int i = 0;i<3;i++){
             if(swaps[i] == -1){
-                System.out.println("Swaps" + swaps[i]);
+                
                 gameState = "Play";
                 turn = find_start(p1);
-                System.out.println(turn + "has the 2 of clubs");
+                
    
                 jedis.set("gameState", gameState);
                 return;
             }
-            System.out.println("Swaps" + swaps[i]);
+            
         }
+
+
 
 
 
@@ -616,21 +727,29 @@ public class GameController {
         p2.choose_swaps();
         p3.choose_swaps();
         p4.choose_swaps();
-        if (p2 != null) {
-            p2.choose_swaps();
-        } else {
-            System.out.println("p2 is null");
+
+
+        System.out.println("p2 swaps:");
+        for(int i = 0;i<3;i++){
+            System.out.print(p2.swap[i] + " ");
         }
-        if (p3 != null) {
-            p3.choose_swaps();
-        } else {
-            System.out.println("p3 is null");
+        System.out.println("p3 swaps:");
+        for(int i = 0;i<3;i++){
+            System.out.print(p3.swap[i] + " ");
         }
-        if (p4 != null) {
-            p4.choose_swaps();
-        } else {
-            System.out.println("p4 is null");
+        System.out.println("p4 swaps:");
+        for(int i = 0;i<3;i++){
+            System.out.print(p4.swap[i] + " ");
         }
+
+
+        
+
+
+
+
+
+        
         Card[] temp = {null, null, null};
 
         if(round % 4 == 1){
@@ -646,7 +765,67 @@ public class GameController {
         p1.Sort_Hand();
         gameState = "Play";
         turn = find_start(p1);
-        System.out.println(turn + "has the 2 of clubs");
+
+        System.out.println("After Swapping:");
+
+        HashSet<StringBuilder> Deck_Check = new HashSet<>();
+
+        for(int i = 0; i<13;i++){
+            if(p1.hand[i] == null){
+                System.out.print("Null ");
+            }
+            else{
+                System.out.print(p1.hand[i].signature + " ");
+            }
+            if(Deck_Check.contains(p1.hand[i].signature)){
+                System.out.println("Duplicate card found in p1's hand");
+                System.exit(0); 
+            }
+            Deck_Check.add(p1.hand[i].signature);
+        }
+        System.out.println("p2 hand:");
+        for(int i = 0; i<13;i++){
+            if(p2.hand[i] == null){
+                System.out.print("Null ");
+            }
+            else{
+                System.out.print(p2.hand[i].signature + " ");
+            }
+            if(Deck_Check.contains(p2.hand[i].signature)){
+                System.out.println("Duplicate card found in p1's hand");
+                System.exit(0); 
+            }
+            Deck_Check.add(p2.hand[i].signature);
+        }
+        System.out.println("p3 hand:");
+        for(int i = 0; i<13;i++){
+            if(p3.hand[i] == null){
+                System.out.print("Null ");
+            }
+            else{
+                System.out.print(p3.hand[i].signature + " ");
+            }
+            if(Deck_Check.contains(p3.hand[i].signature)){
+                System.out.println("Duplicate card found in p1's hand");
+                System.exit(0); 
+            }
+            Deck_Check.add(p3.hand[i].signature);
+        }
+        System.out.println("p4 hand:");
+        for(int i = 0; i<13;i++){
+            if(p4.hand[i] == null){
+                System.out.print("Null ");
+            }
+            else{
+                System.out.print(p4.hand[i].signature + " ");
+            }
+            if(Deck_Check.contains(p4.hand[i].signature)){
+                System.out.println("Duplicate card found in p1's hand");
+                System.exit(0); 
+            }
+            Deck_Check.add(p4.hand[i].signature);
+        }
+        
    
         jedis.set("gameState", gameState);
 
@@ -670,6 +849,7 @@ public class GameController {
     @CrossOrigin(origins = "http://localhost:3000")
     @PostMapping("/startGame")
     public void startNewGame(HttpSession session) {
+        System.out.println("Starting a new game");
         JedisShardInfo shardInfo = new JedisShardInfo("localhost");
         Jedis jedis = new Jedis(shardInfo);
         ObjectMapper mapper = new ObjectMapper(); // create a new ObjectMapper
@@ -699,6 +879,8 @@ public class GameController {
         p2.Sort_Hand();
         p3.Sort_Hand();
         p4.Sort_Hand();
+
+
         
         try {
             // serialize the players and round number to JSON and store them in Redis
@@ -831,6 +1013,13 @@ public class GameController {
             p4.hand[j] = deck[i++];
         }
         p1.Sort_Hand();
+        p2.Sort_Hand();
+        p3.Sort_Hand();
+        p4.Sort_Hand();
+
+        
+
+
     }
 
 
@@ -845,6 +1034,8 @@ public class GameController {
             p2.hand[p2.swap[i]] = p1.hand[p1.swap[i]];
             p1.hand[p1.swap[i]] = temp[i];
         }
+        
+
     }
 
 

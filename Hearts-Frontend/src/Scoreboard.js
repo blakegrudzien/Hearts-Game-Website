@@ -43,7 +43,7 @@ function ScoreBoard({ gameState, setGameState }) {
  *  it starts a newround, otherwise it just counts up the points
  */
   const fetchScores = useCallback(async () => {
-    console.log("Fetching scores...");
+    
     try {
       const response = await fetch('http://localhost:8080/getScores');
       const newScores = await response.json(); 
@@ -57,7 +57,7 @@ function ScoreBoard({ gameState, setGameState }) {
         if (trickNumber === 13) {
           setGameState("Swap");
           setRoundFinished(true);
-          console.log("Round finished");
+          
         } else {
           setGameState("Play");
           setRoundFinished(false);

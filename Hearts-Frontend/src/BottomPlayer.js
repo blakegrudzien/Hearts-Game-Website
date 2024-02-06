@@ -20,12 +20,12 @@ const BottomPlayer = ({ gameState, setGameState, turn, setTurn, triggerApp }) =>
   useEffect(() => {
     const startNewGame = async () => {
       try {
-        let response = await fetch('http://localhost:8080/startGame', { method: 'POST' });
+       /*let response = await fetch('http://localhost:8080/startGame', { method: 'POST' });
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
-        }
+        } */
 
-      response = await fetch('http://localhost:8080/getGameState', { method: 'GET' });
+      let response = await fetch('http://localhost:8080/getGameState', { method: 'GET' });
       let gameState = await response.text();
       setGameState(gameState);
 
@@ -36,7 +36,7 @@ const BottomPlayer = ({ gameState, setGameState, turn, setTurn, triggerApp }) =>
       } catch (error) {
         console.error('Error:', error);
       }
-    };
+   };
 
     startNewGame();
   }, []);
@@ -73,8 +73,7 @@ const BottomPlayer = ({ gameState, setGameState, turn, setTurn, triggerApp }) =>
   };
 
 useEffect(() => {
-  console.log("Turn in Bottom Player is: " + turn);
-  console.log("Gamestate in Bottom Player is: " + gameState);
+  
   
     
     const fetchAndCheckGameState = async () => {
