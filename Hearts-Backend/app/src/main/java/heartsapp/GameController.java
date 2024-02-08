@@ -215,14 +215,7 @@ public class GameController {
 
         
 
-
-
-
-
-
-
-
-
+        
 
         if(trick_number == 13){
             gameState = "End";
@@ -236,6 +229,72 @@ public class GameController {
                 num+=1;
             }
         }
+        if(trick_number == 1 && num == 0){
+            HashSet<StringBuilder> Deck_Check = new HashSet<>();
+
+        for(int i = 0; i<13;i++){
+            if(p1.hand[i] == null){
+                System.out.print("Null ");
+            }
+            else{
+                System.out.print(p1.hand[i].signature + " ");
+            }
+            if(Deck_Check.contains(p1.hand[i].signature)){
+                System.out.println("Duplicate card found in p1's hand");
+                System.exit(0); 
+            }
+            Deck_Check.add(p1.hand[i].signature);
+        }
+        System.out.println("p2 hand:");
+        for(int i = 0; i<13;i++){
+            if(p2.hand[i] == null){
+                System.out.print("Null ");
+            }
+            else{
+                System.out.print(p2.hand[i].signature + " ");
+            }
+            if(Deck_Check.contains(p2.hand[i].signature)){
+                System.out.println("Duplicate card found in p1's hand");
+                System.exit(0); 
+            }
+            Deck_Check.add(p2.hand[i].signature);
+        }
+        System.out.println("p3 hand:");
+        for(int i = 0; i<13;i++){
+            if(p3.hand[i] == null){
+                System.out.print("Null ");
+            }
+            else{
+                System.out.print(p3.hand[i].signature + " ");
+            }
+            if(Deck_Check.contains(p3.hand[i].signature)){
+                System.out.println("Duplicate card found in p1's hand");
+                System.exit(0); 
+            }
+            Deck_Check.add(p3.hand[i].signature);
+        }
+        System.out.println("p4 hand:");
+        for(int i = 0; i<13;i++){
+            if(p4.hand[i] == null){
+                System.out.print("Null ");
+            }
+            else{
+                System.out.print(p4.hand[i].signature + " ");
+            }
+            if(Deck_Check.contains(p4.hand[i].signature)){
+                System.out.println("Duplicate card found in p1's hand");
+                System.exit(0); 
+            }
+            Deck_Check.add(p4.hand[i].signature);
+        }
+        }
+
+
+
+
+
+
+
         if(num == 4){
             return null;
         }
@@ -301,6 +360,13 @@ public class GameController {
             return valid;
         }
         else if(turn == 2){
+            if(trick_number == 1){
+                for(int i = 0;i<13;i++){
+                    if(p2.hand[i]==null){
+                        System.out.println("Null card found in p2's hand");
+                    }
+                }
+            }
             
             played = p2.play_card(trick, num, Hearts_Broken, trick_number);
             play = p2.hand[played];
@@ -308,13 +374,26 @@ public class GameController {
             p2.hand[played] = null;
         }
         else if(turn == 3){
-            
+            if(trick_number == 1){
+                for(int i = 0;i<13;i++){
+                    if(p3.hand[i]==null){
+                        System.out.println("Null card found in p3's hand");
+                    }
+                }
+            }
             played = p3.play_card(trick, num, Hearts_Broken, trick_number);
             play = p3.hand[played];
             turn = 4;
             p3.hand[played] = null;
         }
         else{
+            if(trick_number == 1){
+                for(int i = 0;i<13;i++){
+                    if(p4.hand[i]==null){
+                        System.out.println("Null card found in p4's hand");
+                    }
+                }
+            }
             
             played = p4.play_card(trick, num, Hearts_Broken, trick_number);
             play = p4.hand[played];
@@ -766,6 +845,10 @@ public class GameController {
         gameState = "Play";
         turn = find_start(p1);
 
+
+
+        
+
         System.out.println("After Swapping:");
 
         HashSet<StringBuilder> Deck_Check = new HashSet<>();
@@ -1060,20 +1143,25 @@ public class GameController {
         p1.next.next.Sort_Hand();
         p1.next.next.next.Sort_Hand();
         if(p1.hand[0].val == 2 && p1.hand[0].suit_char == 'c'){
+            System.out.println("Player 1 has the 2 of clubs");
             return 1;
         }
         else if(p1.next.hand[0].val == 2 && p1.next.hand[0].suit_char == 'c'){
+            System.out.println("Player 2 has the 2 of clubs");
             return 2;
         }
         else if(p1.next.next.hand[0].val == 2 &&   p1.next.next.hand[0].suit_char == 'c'){
+            System.out.println("Player 3 has the 2 of clubs");
             return 3;
         }
         else if (p1.next.next.next.hand[0].val == 2 && p1.next.next.next.hand[0].suit_char == 'c'){
+            System.out.println("Player 4 has the 2 of clubs");
             return 4;
         }
         else{
             System.out.println("Nobody has the card");
             return 4;
         }
+
     }
 }

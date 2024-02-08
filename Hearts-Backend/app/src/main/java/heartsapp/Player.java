@@ -122,13 +122,13 @@ public String[] getImageUrls() {
             }
         }
         int min = 0;
-while(this.hand[min] == null){
-    min++;
-    if(min == 13){
-        System.out.println("There are no playable cards in the computer's hand");
-        System.exit(0); // Exit the entire program
-    }
-}
+        while(this.hand[min] == null){
+            min++;
+            if(min == 13){
+                System.out.println("There are no playable cards in the computer's hand");
+                System.exit(0); // Exit the entire program
+            }
+        }
         
 
         
@@ -152,6 +152,7 @@ while(this.hand[min] == null){
                     }
                 }
             }
+            
         }
         else{
             min = -1;
@@ -191,6 +192,17 @@ while(this.hand[min] == null){
         }
       
         Trick[cards_played].Holder = this;
+
+        System.out.println("Current Trick");
+
+        for(int j = 0;j<4;j++){
+            if (Trick[j] != null) {
+                System.out.print(Trick[j].signature + " ");
+            }
+            else{
+                System.out.print("null ");
+            }
+        }
 
         return min;
     }
