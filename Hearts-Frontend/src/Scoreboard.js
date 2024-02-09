@@ -53,7 +53,6 @@ function ScoreBoard({ gameState, setGameState }) {
 
         const trickResponse = await fetch('http://localhost:8080/getTrickNumber');
         const trickNumber = await trickResponse.json();
-        console.log("Trick number is: " + trickNumber);
         if (trickNumber === 13) {
           setGameState("Swap");
           setRoundFinished(true);
