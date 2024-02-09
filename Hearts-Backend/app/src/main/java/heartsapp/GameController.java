@@ -213,15 +213,8 @@ public class GameController {
         int turn = Integer.parseInt(turnJson);
         int trick_number = Integer.parseInt(trick_numberJson);
 
-        System.out.println("Trick before at the start of playcard" );
-        for(int  i = 0;i<4;i++){
-            if(trick[i] != null){
-                System.out.println(trick[i].signature);
-            }
-            else{
-                System.out.println("null");
-            }
-        }
+        
+       
 
         if(trick_number == 13){
             gameState = "End";
@@ -507,7 +500,7 @@ public class GameController {
         Jedis jedis = new Jedis(shardInfo);
         ObjectMapper mapper = new ObjectMapper();
         int[] scoreBoard = new int[4];
-        System.out.println("Getting scores from Redis");
+     
 
         try {
 
@@ -517,26 +510,11 @@ public class GameController {
             Player p3 = mapper.readValue(jedis.get("p3"), Player.class);
             Player p4 = mapper.readValue(jedis.get("p4"), Player.class);
             
-            System.out.println("After fetching players");
             String trickNumberString = jedis.get("trick_number");
             int trickNumber = Integer.parseInt(trickNumberString);
 
-            System.out.println("After fetching scores");
-
-            System.out.println("Trick number" + trickNumber);
-            
-
-
             if(trickNumber == 13){
-                System.out.println("Checking for moon and resetting scores");
-
                 
-                    System.out.println("p1 score: " + p1.score);
-                    System.out.println("p2 score: " + p2.score);
-                    System.out.println("p3 score: " + p3.score);
-                    System.out.println("p4 score: " + p4.score);
-
-
                     if(p1.score == 26){
                         p1.score = 0;
                         p2.score = 26;
@@ -562,14 +540,6 @@ public class GameController {
                         p3.score = 26;
                     }
 
-
-                    System.out.println("p1 score: " + p1.score);
-                    System.out.println("p2 score: " + p2.score);
-                    System.out.println("p3 score: " + p3.score);
-                    System.out.println("p4 score: " + p4.score);
-
-
-                    
                 p1.overall_score += p1.score;
                 p2.overall_score += p2.score;
                 p3.overall_score += p3.score;
@@ -579,26 +549,7 @@ public class GameController {
                 p2.score = 0;
                 p3.score = 0;
                 p4.score = 0;
-
-
-
             }
-
-            System.out.println("p1 score: " + p1.score);
-            System.out.println("p2 score: " + p2.score);
-            System.out.println("p3 score: " + p3.score);
-            System.out.println("p4 score: " + p4.score);
-
-
-            System.out.println("p1 overall score: " + p1.overall_score);
-            System.out.println("p2 overall score: " + p2.overall_score);
-            System.out.println("p3 overall score: " + p3.overall_score);
-            System.out.println("p4 overall score: " + p4.overall_score);
-
-
-            
-
-            
             scoreBoard[0] = p1.score + p1.overall_score;
             scoreBoard[1] = p2.score + p2.overall_score;
             scoreBoard[2] = p3.score + p3.overall_score;
@@ -616,7 +567,6 @@ public class GameController {
         } catch (Exception e) {
             System.out.println("Exception while getting scores from Redis: " + e.getMessage());
         }
-        System.out.println("Scores from Redis: " + Arrays.toString(scoreBoard));
         return scoreBoard;
     }
 
@@ -654,50 +604,6 @@ public class GameController {
             System.out.println("Exception while getting players and round number from Redis: " + e.getMessage());
         }
 
-        System.out.println("Before Swapping");
-
-        for(int i = 0; i<13;i++){
-            if(p1.hand[i] == null){
-                System.out.print("Null ");
-            }
-            else{
-                System.out.print(p1.hand[i].signature + " ");
-            }
-        }
-        System.out.println("p2 hand:");
-        for(int i = 0; i<13;i++){
-            if(p2.hand[i] == null){
-                System.out.print("Null ");
-            }
-            else{
-                System.out.print(p2.hand[i].signature + " ");
-            }
-        }
-        System.out.println("p3 hand:");
-        for(int i = 0; i<13;i++){
-            if(p3.hand[i] == null){
-                System.out.print("Null ");
-            }
-            else{
-                System.out.print(p3.hand[i].signature + " ");
-            }
-        }
-        System.out.println("p4 hand:");
-        for(int i = 0; i<13;i++){
-            if(p4.hand[i] == null){
-                System.out.print("Null ");
-            }
-            else{
-                System.out.print(p4.hand[i].signature + " ");
-            }
-        }
-        
-        
-
-        
-
-        
-
         p1.next = p2;
         p2.next = p3;
         p3.next = p4;
@@ -730,28 +636,6 @@ public class GameController {
         p3.choose_swaps();
         p4.choose_swaps();
 
-
-        System.out.println("p2 swaps:");
-        for(int i = 0;i<3;i++){
-            System.out.print(p2.swap[i] + " ");
-        }
-        System.out.println("p3 swaps:");
-        for(int i = 0;i<3;i++){
-            System.out.print(p3.swap[i] + " ");
-        }
-        System.out.println("p4 swaps:");
-        for(int i = 0;i<3;i++){
-            System.out.print(p4.swap[i] + " ");
-        }
-
-
-        
-
-
-
-
-
-        
         Card[] temp = {null, null, null};
 
         if(round % 4 == 1){
@@ -768,65 +652,8 @@ public class GameController {
         gameState = "Play";
         turn = find_start(p1);
 
-       System.out.println("After Swapping:");
+   
 
-        HashSet<StringBuilder> Deck_Check = new HashSet<>();
-
-        for(int i = 0; i<13;i++){
-            if(p1.hand[i] == null){
-                System.out.print("Null ");
-            }
-            else{
-                System.out.print(p1.hand[i].signature + " ");
-            }
-            if(Deck_Check.contains(p1.hand[i].signature)){
-                System.out.println("Duplicate card found in p1's hand");
-                System.exit(0); 
-            }
-            Deck_Check.add(p1.hand[i].signature);
-        }
-        System.out.println("p2 hand:");
-        for(int i = 0; i<13;i++){
-            if(p2.hand[i] == null){
-                System.out.print("Null ");
-            }
-            else{
-                System.out.print(p2.hand[i].signature + " ");
-            }
-            if(Deck_Check.contains(p2.hand[i].signature)){
-                System.out.println("Duplicate card found in p1's hand");
-                System.exit(0); 
-            }
-            Deck_Check.add(p2.hand[i].signature);
-        }
-        System.out.println("p3 hand:");
-        for(int i = 0; i<13;i++){
-            if(p3.hand[i] == null){
-                System.out.print("Null ");
-            }
-            else{
-                System.out.print(p3.hand[i].signature + " ");
-            }
-            if(Deck_Check.contains(p3.hand[i].signature)){
-                System.out.println("Duplicate card found in p1's hand");
-                System.exit(0); 
-            }
-            Deck_Check.add(p3.hand[i].signature);
-        }
-        System.out.println("p4 hand:");
-        for(int i = 0; i<13;i++){
-            if(p4.hand[i] == null){
-                System.out.print("Null ");
-            }
-            else{
-                System.out.print(p4.hand[i].signature + " ");
-            }
-            if(Deck_Check.contains(p4.hand[i].signature)){
-                System.out.println("Duplicate card found in p1's hand");
-                System.exit(0); 
-            }
-            Deck_Check.add(p4.hand[i].signature);
-        }
         
    
         jedis.set("gameState", gameState);
@@ -851,7 +678,7 @@ public class GameController {
     @CrossOrigin(origins = "http://localhost:3000")
     @PostMapping("/startGame")
     public void startNewGame(HttpSession session) {
-        System.out.println("Starting a new game");
+        
         JedisShardInfo shardInfo = new JedisShardInfo("localhost");
         Jedis jedis = new Jedis(shardInfo);
         ObjectMapper mapper = new ObjectMapper(); // create a new ObjectMapper
@@ -873,9 +700,7 @@ public class GameController {
         Card[] trick = new Card[4];
         Card[] deck = new Card[52];
         make_deck(deck);
-       // for(int i = 0;i<52;i++){
-       //     System.out.println(deck[i].signature);
-       // }
+       
         shuffle_and_deal(deck, p1, p2, p3, p4); 
         p1.Sort_Hand();
         p2.Sort_Hand();
@@ -1074,7 +899,7 @@ public class GameController {
             return 4;
         }
         else{
-            System.out.println("Nobody has the card");
+            
             return 4;
         }
     }
