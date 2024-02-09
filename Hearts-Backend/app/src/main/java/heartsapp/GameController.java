@@ -190,7 +190,7 @@ public class GameController {
      */
     @CrossOrigin(origins = "http://localhost:3000")
     @PostMapping("/playCard")
-    public Object playCard() throws JsonMappingException, JsonProcessingException {
+    public synchronized Object playCard() throws JsonMappingException, JsonProcessingException {
         
         JedisShardInfo shardInfo = new JedisShardInfo("localhost");
         Jedis jedis = new Jedis(shardInfo);
@@ -213,16 +213,15 @@ public class GameController {
         int turn = Integer.parseInt(turnJson);
         int trick_number = Integer.parseInt(trick_numberJson);
 
-        
-
-
-
-
-
-
-
-
-
+        System.out.println("Trick before at the start of playcard" );
+        for(int  i = 0;i<4;i++){
+            if(trick[i] != null){
+                System.out.println(trick[i].signature);
+            }
+            else{
+                System.out.println("null");
+            }
+        }
 
         if(trick_number == 13){
             gameState = "End";
@@ -458,7 +457,10 @@ public class GameController {
             
             
             Hearts_Broken = false;
-            round_number  +=1;
+            round_number +=1;
+            if(round_number == 5){
+                round_number = 1;
+            }
             trick_number = 0; 
             Card[] deck = new Card[52];
             p1.ResetHand();
@@ -755,7 +757,7 @@ public class GameController {
         if(round % 4 == 1){
             circle_swaps(p1, p2, p3, p4, temp);
         }
-        else if(round % 4 == 2){
+        else if(round % 4 == 3){
             across_swaps(p1, p3, temp);
             across_swaps(p2, p4, temp);
         }
@@ -766,7 +768,7 @@ public class GameController {
         gameState = "Play";
         turn = find_start(p1);
 
-        System.out.println("After Swapping:");
+       System.out.println("After Swapping:");
 
         HashSet<StringBuilder> Deck_Check = new HashSet<>();
 
