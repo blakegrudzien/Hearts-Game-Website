@@ -214,12 +214,6 @@ public class GameController {
         int trick_number = Integer.parseInt(trick_numberJson);
 
         
-<<<<<<< HEAD
-
-        
-=======
-       
->>>>>>> 528626d795a8a35d7d76999403158e571fb7026f
 
         if(trick_number == 13){
             gameState = "End";
@@ -743,15 +737,7 @@ public class GameController {
         gameState = "Play";
         turn = find_start(p1);
 
-<<<<<<< HEAD
 
-
-        
-
-        System.out.println("After Swapping:");
-=======
-   
->>>>>>> 528626d795a8a35d7d76999403158e571fb7026f
 
         
    

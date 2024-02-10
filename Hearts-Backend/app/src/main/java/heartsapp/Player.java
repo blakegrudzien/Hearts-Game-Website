@@ -115,22 +115,14 @@ public String[] getImageUrls() {
 
        
         int min = 0;
-<<<<<<< HEAD
-        while(this.hand[min] == null){
-            min++;
-            if(min == 13){
-                System.out.println("There are no playable cards in the computer's hand");
-                System.exit(0); // Exit the entire program
-            }
-        }
-=======
+
 while(this.hand[min] == null){
     min++;
     if(min == 13){
         System.exit(0); // Exit the entire program
     }
 }
->>>>>>> 528626d795a8a35d7d76999403158e571fb7026f
+
         
 
         
