@@ -15,7 +15,8 @@ import RightPlayer from './RightPlayer';
 import LeftPlayer from './LeftPlayer';
 import PlayedCards from './PlayedCards';
 import BottomPlayer from './BottomPlayer';
-import ScoreBoard from './ScoreBoard';  
+
+import ScoreBoard from './ScoreBoard';
 
 
 
