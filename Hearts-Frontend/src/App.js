@@ -9,6 +9,7 @@
  */
 import './index.css';
 import Header from './Header';
+import ScoreBoard from './ScoreBoard';
 import TopPlayer from './TopPlayer';
 import { useState } from 'react';
 import RightPlayer from './RightPlayer';
@@ -16,7 +17,7 @@ import LeftPlayer from './LeftPlayer';
 import PlayedCards from './PlayedCards';
 import BottomPlayer from './BottomPlayer';
 
-import ScoreBoard from './ScoreBoard';
+
 
 
 
