@@ -113,15 +113,9 @@ public String[] getImageUrls() {
 //the computer plays a card, with simple but strong strategy
     public Integer play_card(Card[] Trick, int cards_played, boolean Hearts_broken, int trick_number){
 
-        for(int i = 0; i<13;i++){
-            if(this.hand[i] == null){
-                System.out.print("Null ");
-            }
-            else{
-                System.out.print(this.hand[i].signature + " ");
-            }
-        }
+       
         int min = 0;
+<<<<<<< HEAD
         while(this.hand[min] == null){
             min++;
             if(min == 13){
@@ -129,6 +123,14 @@ public String[] getImageUrls() {
                 System.exit(0); // Exit the entire program
             }
         }
+=======
+while(this.hand[min] == null){
+    min++;
+    if(min == 13){
+        System.exit(0); // Exit the entire program
+    }
+}
+>>>>>>> 528626d795a8a35d7d76999403158e571fb7026f
         
 
         

@@ -72,10 +72,7 @@ const BottomPlayer = ({ gameState, setGameState, turn, setTurn, triggerApp }) =>
     }
   };
 
-useEffect(() => {
-  
-  
-    
+  useEffect(() => {
     const fetchAndCheckGameState = async () => {
       await fetchTurn();
       await fetchGameState();

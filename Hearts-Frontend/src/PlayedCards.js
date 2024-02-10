@@ -84,6 +84,7 @@ const PlayedCards = ({ setGameState, gameState, turn , setTurn}) => {
       const trick = await response.json();  // Parse the response as JSON
       
       setCardUrls(trick);  // Store the trick in the cardUrls state
+   
 
       if(trick.length === 4){
         
