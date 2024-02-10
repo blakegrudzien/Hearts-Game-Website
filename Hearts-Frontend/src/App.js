@@ -16,7 +16,7 @@ import RightPlayer from './RightPlayer';
 import LeftPlayer from './LeftPlayer';
 import PlayedCards from './PlayedCards';
 import BottomPlayer from './BottomPlayer';
-import { API_URL } from './config';
+import API_URL from './config';
 
 
 

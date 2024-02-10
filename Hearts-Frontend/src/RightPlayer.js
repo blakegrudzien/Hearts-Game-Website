@@ -4,7 +4,7 @@
 
 
 import './index.css';
-import API_URL from '../config';
+import API_URL from './config';
 import React, { useState, useEffect } from 'react';
 
 const RightPlayer = () => {

@@ -1,6 +1,6 @@
 import './index.css';
 import { useState, useEffect } from 'react';
-import API_URL from '../config';
+import API_URL from './config';
 
 const BottomPlayer = ({ gameState, setGameState, turn, setTurn, triggerApp }) => {
   const [selectedCards, setSelectedCards] = useState([]);

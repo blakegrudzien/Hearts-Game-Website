@@ -5,7 +5,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import API_URL from '../config';
+import API_URL from './config';
 
 const PlayedCards = ({ setGameState, gameState, turn , setTurn}) => {
   const [cardUrls, setCardUrls] = useState([]);
