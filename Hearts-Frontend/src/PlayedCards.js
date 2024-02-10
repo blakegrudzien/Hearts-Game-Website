@@ -5,6 +5,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
+import API_URL from '../config';
 
 const PlayedCards = ({ setGameState, gameState, turn , setTurn}) => {
   const [cardUrls, setCardUrls] = useState([]);
@@ -16,7 +17,7 @@ const PlayedCards = ({ setGameState, gameState, turn , setTurn}) => {
  */
 
   const playCard = async () => {
-    return fetch('http://localhost:8080/playCard', { method: 'POST' })
+    return fetch(`${API_URL}/playCard`, { method: 'POST' })
       .catch(error => console.error('Error:', error));  
   };
 
@@ -30,7 +31,7 @@ const PlayedCards = ({ setGameState, gameState, turn , setTurn}) => {
   const clearTrick = async () => {
     
     try {
-      const response = await fetch('http://localhost:8080/clearTrick', { method: 'POST' });
+      const response = await fetch(`${API_URL}/clearTrick`, { method: 'POST' });
       if (!response.ok) {
         throw new Error('Network response was not ok');
       }
@@ -48,7 +49,7 @@ const PlayedCards = ({ setGameState, gameState, turn , setTurn}) => {
  */
   const fetchTurn = async () => {
     try {
-      const response = await fetch('http://localhost:8080/getturn');
+      const response = await fetch(`${API_URL}/getturn`);
       const newTurn = await response.json();
       setTurn(newTurn);
     } catch (error) {
@@ -80,7 +81,7 @@ const PlayedCards = ({ setGameState, gameState, turn , setTurn}) => {
  */
   const printTrick = async () => {
     try {
-      const response = await fetch('http://localhost:8080/getTrick');
+      const response = await fetch(`${API_URL}/getTrick`);
       const trick = await response.json();  // Parse the response as JSON
       
       setCardUrls(trick);  // Store the trick in the cardUrls state

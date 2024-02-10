@@ -16,6 +16,7 @@ import RightPlayer from './RightPlayer';
 import LeftPlayer from './LeftPlayer';
 import PlayedCards from './PlayedCards';
 import BottomPlayer from './BottomPlayer';
+import API_URL from '../config';
 
 
 
@@ -45,7 +46,7 @@ function App() {
   * Starts a new game by calling the startGame function from the backend, and sets the gameStarted state to true 
  */
   const startNewGame = () => {
-    fetch('http://localhost:8080/startGame', {method: 'POST'})
+    fetch(`${API_URL}/startGame`, {method: 'POST'})
       .then(response => {
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);

@@ -33,7 +33,7 @@ public class GameController {
      * This function fetches the gamestate from redis then sends it to the frontend
      */
     
-    @CrossOrigin(origins = "http://localhost:3000")
+    //@CrossOrigin(origins = "http://localhost:3000")
     @GetMapping("/getGameState")
     public String getGameState() {
         JedisShardInfo shardInfo = new JedisShardInfo("localhost");
@@ -53,7 +53,7 @@ public class GameController {
      * This function fetches the turn from redis then sends it to the frontend
      */
 
-    @CrossOrigin(origins = "http://localhost:3000")
+   // @CrossOrigin(origins = "http://localhost:3000")
     @GetMapping("/getturn")
     public Integer getturn() {
         JedisShardInfo shardInfo = new JedisShardInfo("localhost");
@@ -72,7 +72,7 @@ public class GameController {
     /*
      * This function fetches the trick from redis then sends it to the frontend
      */
-    @CrossOrigin(origins = "http://localhost:3000")
+    //@CrossOrigin(origins = "http://localhost:3000")
     @GetMapping("/getTrick")
     public String[] getTrick() {
         JedisShardInfo shardInfo = new JedisShardInfo("localhost");
@@ -101,7 +101,7 @@ public class GameController {
     /*
      * This function fetches the round number from redis then sends it to the frontend
      */
-    @CrossOrigin(origins = "http://localhost:3000")
+   // @CrossOrigin(origins = "http://localhost:3000")
     @GetMapping("/getRoundNumber")
     public int getRoundNumber() {
         JedisShardInfo shardInfo = new JedisShardInfo("localhost");
@@ -121,7 +121,7 @@ public class GameController {
     /*
      * This function takes the card that the player has chosen and adds it to the trick and removes it from their hand
      */
-    @CrossOrigin(origins = "http://localhost:3000")
+   // @CrossOrigin(origins = "http://localhost:3000")
     @PostMapping("/player_plays")
     public void playerPlays(@RequestBody Map<String, Integer> payload) {
         JedisShardInfo shardInfo = new JedisShardInfo("localhost");
@@ -170,7 +170,7 @@ public class GameController {
     /*
      * This function fetches the trick number from redis then sends it to the frontend
      */
-    @CrossOrigin(origins = "http://localhost:3000")
+    //@CrossOrigin(origins = "http://localhost:3000")
     @GetMapping("/getTrickNumber")
     public Integer getTrickNumber() {
         JedisShardInfo shardInfo = new JedisShardInfo("localhost");
@@ -188,7 +188,7 @@ public class GameController {
      * a card and add it to the trick, if the player called it, it will look at the trick 
      * and return a boolean array that will correspond to which of the players cards can be played
      */
-    @CrossOrigin(origins = "http://localhost:3000")
+   // @CrossOrigin(origins = "http://localhost:3000")
     @PostMapping("/playCard")
     public synchronized Object playCard() throws JsonMappingException, JsonProcessingException {
         
@@ -419,7 +419,7 @@ public class GameController {
      * This function clears out the trick and allocates points to the winner of the trick
      */
 
-    @CrossOrigin(origins = "http://localhost:3000")
+    //@CrossOrigin(origins = "http://localhost:3000")
     @PostMapping("/clearTrick")
     public void clearTrick() {
         JedisShardInfo shardInfo = new JedisShardInfo("localhost");
@@ -511,7 +511,7 @@ public class GameController {
     /*
      * This function starts a newround by resetting the trick, and the players hands
      */
-    @CrossOrigin(origins = "http://localhost:3000")
+   // @CrossOrigin(origins = "http://localhost:3000")
     @PostMapping("/startNewRound")
     public void startNewRound() {
         JedisShardInfo shardInfo = new JedisShardInfo("localhost");
@@ -578,7 +578,7 @@ public class GameController {
     /*
      * This function fetches the scores from redis then sends it to the frontend
      */
-    @CrossOrigin(origins = "http://localhost:3000")
+   // @CrossOrigin(origins = "http://localhost:3000")
     @GetMapping("/getScores")
     public int[] getScores() {
         JedisShardInfo shardInfo = new JedisShardInfo("localhost");
@@ -659,7 +659,7 @@ public class GameController {
      * This function performs the swap of cards between the players
      */
 
-    @CrossOrigin(origins = "http://localhost:3000")
+    //@CrossOrigin(origins = "http://localhost:3000")
     @PostMapping("/performSwap")
     public void swap_cards(@RequestBody int[] swaps) {
         
@@ -760,7 +760,7 @@ public class GameController {
     /*
      * This function starts a new game by creating the necessary variables and setting the gamestate to swap
      */
-    @CrossOrigin(origins = "http://localhost:3000")
+   // @CrossOrigin(origins = "http://localhost:3000")
     @PostMapping("/startGame")
     public void startNewGame(HttpSession session) {
         
@@ -817,7 +817,7 @@ public class GameController {
      * This function fetches the Player's hand from redis then sends it to the frontend
      */
      
-    @CrossOrigin(origins = "http://localhost:3000")
+   // @CrossOrigin(origins = "http://localhost:3000")
     @GetMapping("/getPlayerHand")
     public String[] getPlayerHand() {
         JedisShardInfo shardInfo = new JedisShardInfo("localhost");
@@ -837,7 +837,7 @@ public class GameController {
      * This function fetches the number of cards in the computer player's hand from redis then sends it to the frontend
      */
      
-    @CrossOrigin(origins = "http://localhost:3000")
+   // @CrossOrigin(origins = "http://localhost:3000")
     @GetMapping("/getComputerHand")
     public int getComputerHand(@RequestParam String playerName) {
         JedisShardInfo shardInfo = new JedisShardInfo("localhost");

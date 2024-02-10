@@ -4,6 +4,7 @@
 
 
 import './index.css';
+import API_URL from '../config';
 import React, { useState, useEffect } from 'react';
 
 const RightPlayer = () => {
@@ -16,7 +17,7 @@ const RightPlayer = () => {
  */
   useEffect(() => {
     const getComputerHand = async () => {
-      const response = await fetch('http://localhost:8080/getComputerHand?playerName=p3', { method: 'GET' });
+      const response = await fetch(`${API_URL}/getComputerHand?playerName=p3`, { method: 'GET' });
       const cardCount = await response.text();
       setCardCount(parseInt(cardCount, 10));
     };

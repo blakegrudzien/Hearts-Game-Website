@@ -1,5 +1,6 @@
 import './index.css';
 import { useState, useEffect } from 'react';
+import API_URL from '../config';
 
 const BottomPlayer = ({ gameState, setGameState, turn, setTurn, triggerApp }) => {
   const [selectedCards, setSelectedCards] = useState([]);
@@ -20,17 +21,13 @@ const BottomPlayer = ({ gameState, setGameState, turn, setTurn, triggerApp }) =>
   useEffect(() => {
     const startNewGame = async () => {
       try {
-       /*let response = await fetch('http://localhost:8080/startGame', { method: 'POST' });
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        } */
-
-      let response = await fetch('http://localhost:8080/getGameState', { method: 'GET' });
+       
+      let response = await fetch(`${API_URL}/getGameState`, { method: 'GET' });
       let gameState = await response.text();
       setGameState(gameState);
 
 
-      response = await fetch('http://localhost:8080/getPlayerHand', { method: 'GET' });
+      response = await fetch(`${API_URL}/getPlayerHand`, { method: 'GET' });
       let handData = await response.text();
       setImageUrls(JSON.parse(handData)); 
       } catch (error) {
@@ -47,7 +44,7 @@ const BottomPlayer = ({ gameState, setGameState, turn, setTurn, triggerApp }) =>
  */
   const fetchGameState = async () => {
     try {
-      const response = await fetch('http://localhost:8080/getGameState', { method: 'GET' });
+      const response = await fetch(`${API_URL}/getGameState`, { method: 'GET' });
       const gameState = await response.text();
       setGameState(gameState); // replace with actual data property
       return gameState;
@@ -63,7 +60,7 @@ const BottomPlayer = ({ gameState, setGameState, turn, setTurn, triggerApp }) =>
  */
   const fetchTurn = async () => {
     try {
-      const response = await fetch('http://localhost:8080/getturn', { method: 'GET' });
+      const response = await fetch(`${API_URL}/getturn`, { method: 'GET' });
       const turnData = await response.json();
       setTurn(turnData); // Update the turn state with the new data
       return turnData;
@@ -103,7 +100,7 @@ const BottomPlayer = ({ gameState, setGameState, turn, setTurn, triggerApp }) =>
  */
   const playCard = async () => {
     try {
-      const response = await fetch('http://localhost:8080/playCard', {
+      const response = await fetch(`${API_URL}/playCard`, {
         method: 'POST',
       });
       if (!response.ok) {
@@ -128,7 +125,7 @@ const BottomPlayer = ({ gameState, setGameState, turn, setTurn, triggerApp }) =>
  */
   const player_plays = async (index) => {
     try {
-      const response = await fetch('http://localhost:8080/player_plays', {
+      const response = await fetch(`${API_URL}/player_plays`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -143,7 +140,7 @@ const BottomPlayer = ({ gameState, setGameState, turn, setTurn, triggerApp }) =>
       printTrick();
       fetchTurn();
 
-    const response2 = await fetch('http://localhost:8080/getPlayerHand', { method: 'GET' });
+    const response2 = await fetch(`${API_URL}/getPlayerHand`, { method: 'GET' });
     let handData = await response2.text();
     await setValid(Array(JSON.parse(handData).length).fill(false));
     await setImageUrls(JSON.parse(handData)); // replace with actual data property
@@ -161,7 +158,7 @@ const BottomPlayer = ({ gameState, setGameState, turn, setTurn, triggerApp }) =>
  */
   const printTrick = async () => {
     try {
-      const response = await fetch('http://localhost:8080/getTrick');
+      const response = await fetch(`${API_URL}/getTrick`);
       const trick = await response.json();  
     } catch (error) {
       console.error('Error:', error);
@@ -179,7 +176,7 @@ const BottomPlayer = ({ gameState, setGameState, turn, setTurn, triggerApp }) =>
 
   const handleSwap = async () => {
     try {
-      const response = await fetch('http://localhost:8080/performSwap', {
+      const response = await fetch(`${API_URL}/performSwap`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -191,12 +188,12 @@ const BottomPlayer = ({ gameState, setGameState, turn, setTurn, triggerApp }) =>
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      const handResponse = await fetch('http://localhost:8080/getPlayerHand');
+      const handResponse = await fetch(`${API_URL}/getPlayerHand`);
     const handData = await handResponse.json();
     setImageUrls(handData); 
 
 
-    const gameStateResponse = await fetch('http://localhost:8080/getGameState');
+    const gameStateResponse = await fetch(`${API_URL}/getGameState`);
     const gameStateData = await gameStateResponse.text();
     setGameState(gameStateData); 
 
@@ -216,7 +213,7 @@ const BottomPlayer = ({ gameState, setGameState, turn, setTurn, triggerApp }) =>
  */
   const handleSkipSwap = async () => {
     try {
-      const response = await fetch('http://localhost:8080/performSwap', {
+      const response = await fetch(`${API_URL}/performSwap`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -227,12 +224,12 @@ const BottomPlayer = ({ gameState, setGameState, turn, setTurn, triggerApp }) =>
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      const handResponse = await fetch('http://localhost:8080/getPlayerHand');
+      const handResponse = await fetch(`${API_URL}/getPlayerHand`);
       const handData = await handResponse.json();
       setImageUrls(handData); 
     
 
-      const gameStateResponse = await fetch('http://localhost:8080/getGameState');
+      const gameStateResponse = await fetch(`${API_URL}/getGameState`);
       const gameStateData = await gameStateResponse.text();
       setGameState(gameStateData);
     } catch (error) {
@@ -269,14 +266,14 @@ const BottomPlayer = ({ gameState, setGameState, turn, setTurn, triggerApp }) =>
     const fetchHandData = async () => {
       if(gameState === 'Swap'){
         
-        let roundResponse = await fetch('http://localhost:8080/getRoundNumber', { method: 'GET' });
+        let roundResponse = await fetch(`${API_URL}/getRoundNumber`, { method: 'GET' });
         if (roundResponse.ok) {
           
           let roundNum = await roundResponse.text();
           setRoundNumber(parseInt(roundNum));
   
 
-            const handResponse = await fetch('http://localhost:8080/getPlayerHand');
+            const handResponse = await fetch(`${API_URL}/getPlayerHand`);
           
             if (handResponse.ok) {
               const handData = await handResponse.json();

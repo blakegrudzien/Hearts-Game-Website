@@ -4,6 +4,7 @@
  */
 
 import React, { useState, useEffect, useCallback } from 'react';
+import API_URL from '../config';
 
 
 
@@ -21,7 +22,7 @@ function Score({ gameState, setGameState }) {
  */
   const startNewRound = async () => {
     try {
-      const response = await fetch('http://localhost:8080/startNewRound', {
+      const response = await fetch(`${API_URL}/startNewRound`, {
         method: 'POST',
       });
       if (!response.ok) {
@@ -45,13 +46,13 @@ function Score({ gameState, setGameState }) {
   const fetchScores = useCallback(async () => {
     
     try {
-      const response = await fetch('http://localhost:8080/getScores');
+      const response = await fetch(`${API_URL}/getScores`);
       const newScores = await response.json(); 
   
       if (Array.isArray(newScores) && newScores.length === 4) {
         setScores(newScores); 
 
-        const trickResponse = await fetch('http://localhost:8080/getTrickNumber');
+        const trickResponse = await fetch(`${API_URL}/getTrickNumber`);
         const trickNumber = await trickResponse.json();
         if (trickNumber === 13) {
           setGameState("Swap");
