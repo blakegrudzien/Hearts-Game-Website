@@ -9,7 +9,7 @@
  */
 import './index.css';
 import Header from './Header';
-import ScoreBoard from './ScoreBoard';
+import Score from './Score';
 import TopPlayer from './TopPlayer';
 import { useState } from 'react';
 import RightPlayer from './RightPlayer';
@@ -86,7 +86,7 @@ function App() {
       {gameStarted && (
       <div className = "Bottom-row">
         <BottomPlayer setTurn={setTurn} triggerApp={triggerApp} turn={turn} gameState={gameState} setGameState={setGameState} />
-        <ScoreBoard setGameState = {setGameState} gameState={gameState}/>  
+        <Score setGameState = {setGameState} gameState={gameState}/>  
       </div>
     )}
 

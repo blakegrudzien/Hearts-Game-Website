@@ -7,7 +7,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 
 
 
-function ScoreBoard({ gameState, setGameState }) {
+function Score({ gameState, setGameState }) {
   const [scores, setScores] = useState([0, 0, 0, 0]);
   const [roundFinished, setRoundFinished] = useState(false);
 
@@ -102,4 +102,4 @@ function ScoreBoard({ gameState, setGameState }) {
   );
 }
 
-export default ScoreBoard;
+export default Score;
