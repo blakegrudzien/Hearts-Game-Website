@@ -1,69 +1,45 @@
 package heartsapp;
 
-import redis.clients.jedis.JedisPool;
-import redis.clients.jedis.JedisPoolConfig;
-
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSocketFactory;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
-import java.security.cert.X509Certificate;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
+import org.springframework.data.redis.connection.jedis.JedisClientConfiguration;
+import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.util.StringUtils;
 
 import java.net.URI;
-import java.security.KeyManagementException;
-import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
+import java.net.URISyntaxException;
 
+@Configuration
 public class RedisConfig {
 
-    private static final JedisPool jedisPool;
+    @Value("${REDIS_URL}")
+    private String redisUrl;
 
-    static {
-        jedisPool = createJedisPool();
-    }
+    @Bean
+    public JedisConnectionFactory jedisConnectionFactory() throws URISyntaxException {
+        URI redisUri = new URI(redisUrl);
 
-    public static JedisPool getPool() {
-        return jedisPool;
-    }
+        RedisStandaloneConfiguration redisStandaloneConfiguration = new RedisStandaloneConfiguration();
+        redisStandaloneConfiguration.setHostName(redisUri.getHost());
+        redisStandaloneConfiguration.setPort(redisUri.getPort());
+        redisStandaloneConfiguration.setPassword(redisUri.getUserInfo().split(":", 2)[1]);
 
-    private static JedisPool createJedisPool() {
-        String redisUrl = System.getenv("REDIS_URL");
-        if (redisUrl == null || redisUrl.isEmpty()) {
-            throw new IllegalArgumentException("REDIS_URL environment variable is not set");
+        // Configure SSL
+        JedisClientConfiguration.JedisClientConfigurationBuilder jedisClientConfiguration = JedisClientConfiguration.builder();
+        if (redisUri.getScheme().equals("rediss")) {
+            jedisClientConfiguration.useSsl();
         }
 
-        URI redisUri = URI.create(redisUrl);
-        String password = redisUri.getUserInfo().split(":", 2)[1];
+        return new JedisConnectionFactory(redisStandaloneConfiguration, jedisClientConfiguration.build());
+    }
 
-        JedisPoolConfig poolConfig = new JedisPoolConfig();
-        poolConfig.setMaxTotal(10);
-        poolConfig.setMaxIdle(5);
-        poolConfig.setMinIdle(1);
-        poolConfig.setTestOnBorrow(true);
-        poolConfig.setTestOnReturn(true);
-        poolConfig.setTestWhileIdle(true);
-
-        // Configure SSL context to trust all certificates (use this cautiously in production)
-        SSLContext sslContext;
-        try {
-            sslContext = SSLContext.getInstance("TLS");
-            sslContext.init(null, new TrustManager[] { new X509TrustManager() {
-                public X509Certificate[] getAcceptedIssuers() {
-                    return null;
-                }
-                public void checkClientTrusted(X509Certificate[] certs, String authType) {
-                }
-                public void checkServerTrusted(X509Certificate[] certs, String authType) {
-                }
-            } }, new SecureRandom());
-        } catch (NoSuchAlgorithmException | KeyManagementException e) {
-            throw new RuntimeException("Failed to create SSL context", e);
-        }
-
-
-        SSLSocketFactory sslSocketFactory = sslContext.getSocketFactory();
-
-        // Configure Jedis pool with SSL socket factory
-        return new JedisPool(poolConfig, redisUri.getHost(), redisUri.getPort(), 2000, password, redisUri.getScheme().equals("rediss"), sslSocketFactory, null, null);
+    @Bean
+    public RedisTemplate<String, Object> redisTemplate() throws URISyntaxException {
+        RedisTemplate<String, Object> template = new RedisTemplate<>();
+        template.setConnectionFactory(jedisConnectionFactory());
+        return template;
     }
 }
