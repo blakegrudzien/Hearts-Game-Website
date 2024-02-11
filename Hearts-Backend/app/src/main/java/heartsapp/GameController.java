@@ -1,6 +1,7 @@
 package heartsapp;
 
 import java.io.IOException;
+import java.net.URI;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -36,8 +37,10 @@ public class GameController {
     //@CrossOrigin(origins = "http://localhost:3000")
     @GetMapping("/getGameState")
     public String getGameState() {
-        JedisShardInfo shardInfo = new JedisShardInfo("localhost");
-        Jedis jedis = new Jedis(shardInfo);
+        URI redisUri = URI.create(System.getenv("REDIS_URL"));
+        Jedis jedis = new Jedis(redisUri);
+        //JedisShardInfo shardInfo = new JedisShardInfo("localhost");
+        //Jedis jedis = new Jedis(shardInfo);
         String gameState = null;
         try {
             gameState = jedis.get("gameState");
@@ -56,8 +59,10 @@ public class GameController {
    // @CrossOrigin(origins = "http://localhost:3000")
     @GetMapping("/getturn")
     public Integer getturn() {
-        JedisShardInfo shardInfo = new JedisShardInfo("localhost");
-        Jedis jedis = new Jedis(shardInfo);
+        URI redisUri = URI.create(System.getenv("REDIS_URL"));
+        Jedis jedis = new Jedis(redisUri);
+        //JedisShardInfo shardInfo = new JedisShardInfo("localhost");
+        //Jedis jedis = new Jedis(shardInfo);
         Integer turn = null;
         try {
             turn = Integer.parseInt(jedis.get("turn"));
@@ -75,8 +80,10 @@ public class GameController {
     //@CrossOrigin(origins = "http://localhost:3000")
     @GetMapping("/getTrick")
     public String[] getTrick() {
-        JedisShardInfo shardInfo = new JedisShardInfo("localhost");
-        Jedis jedis = new Jedis(shardInfo);
+        URI redisUri = URI.create(System.getenv("REDIS_URL"));
+        Jedis jedis = new Jedis(redisUri);
+        //JedisShardInfo shardInfo = new JedisShardInfo("localhost");
+       // Jedis jedis = new Jedis(shardInfo);
         ObjectMapper mapper = new ObjectMapper();
         String[] trickList = new String[4];
         Card[] trick = null;
@@ -104,8 +111,10 @@ public class GameController {
    // @CrossOrigin(origins = "http://localhost:3000")
     @GetMapping("/getRoundNumber")
     public int getRoundNumber() {
-        JedisShardInfo shardInfo = new JedisShardInfo("localhost");
-        Jedis jedis = new Jedis(shardInfo);
+        URI redisUri = URI.create(System.getenv("REDIS_URL"));
+        Jedis jedis = new Jedis(redisUri);
+        //JedisShardInfo shardInfo = new JedisShardInfo("localhost");
+        //Jedis jedis = new Jedis(shardInfo);
         
         String round_numberStr = jedis.get("round_number");
         if (round_numberStr == null) {
@@ -124,8 +133,10 @@ public class GameController {
    // @CrossOrigin(origins = "http://localhost:3000")
     @PostMapping("/player_plays")
     public void playerPlays(@RequestBody Map<String, Integer> payload) {
-        JedisShardInfo shardInfo = new JedisShardInfo("localhost");
-        Jedis jedis = new Jedis(shardInfo);
+        URI redisUri = URI.create(System.getenv("REDIS_URL"));
+        Jedis jedis = new Jedis(redisUri);
+        //JedisShardInfo shardInfo = new JedisShardInfo("localhost");
+        //Jedis jedis = new Jedis(shardInfo);
         ObjectMapper mapper = new ObjectMapper();
         int turn = 0;
 
@@ -173,8 +184,10 @@ public class GameController {
     //@CrossOrigin(origins = "http://localhost:3000")
     @GetMapping("/getTrickNumber")
     public Integer getTrickNumber() {
-        JedisShardInfo shardInfo = new JedisShardInfo("localhost");
-        Jedis jedis = new Jedis(shardInfo);
+        URI redisUri = URI.create(System.getenv("REDIS_URL"));
+        Jedis jedis = new Jedis(redisUri);
+        //JedisShardInfo shardInfo = new JedisShardInfo("localhost");
+        //Jedis jedis = new Jedis(shardInfo);
         int trick_number = Integer.parseInt(jedis.get("trick_number"));
         
         return trick_number;
@@ -191,9 +204,10 @@ public class GameController {
    // @CrossOrigin(origins = "http://localhost:3000")
     @PostMapping("/playCard")
     public synchronized Object playCard() throws JsonMappingException, JsonProcessingException {
-        
-        JedisShardInfo shardInfo = new JedisShardInfo("localhost");
-        Jedis jedis = new Jedis(shardInfo);
+        URI redisUri = URI.create(System.getenv("REDIS_URL"));
+        Jedis jedis = new Jedis(redisUri);
+        //JedisShardInfo shardInfo = new JedisShardInfo("localhost");
+        //Jedis jedis = new Jedis(shardInfo);
         ObjectMapper mapper = new ObjectMapper();
         String trickJson = jedis.get("trick");
         Card[] trick = mapper.readValue(trickJson, Card[].class);
@@ -422,9 +436,11 @@ public class GameController {
     //@CrossOrigin(origins = "http://localhost:3000")
     @PostMapping("/clearTrick")
     public void clearTrick() {
-        JedisShardInfo shardInfo = new JedisShardInfo("localhost");
+        URI redisUri = URI.create(System.getenv("REDIS_URL"));
+        Jedis jedis = new Jedis(redisUri);
+        //JedisShardInfo shardInfo = new JedisShardInfo("localhost");
         
-        Jedis jedis = new Jedis(shardInfo);
+        //Jedis jedis = new Jedis(shardInfo);
 
         ObjectMapper mapper = new ObjectMapper();
         String trickNumberStr = jedis.get("trick_number");
@@ -514,8 +530,10 @@ public class GameController {
    // @CrossOrigin(origins = "http://localhost:3000")
     @PostMapping("/startNewRound")
     public void startNewRound() {
-        JedisShardInfo shardInfo = new JedisShardInfo("localhost");
-        Jedis jedis = new Jedis(shardInfo);
+        URI redisUri = URI.create(System.getenv("REDIS_URL"));
+        Jedis jedis = new Jedis(redisUri);
+        //JedisShardInfo shardInfo = new JedisShardInfo("localhost");
+       // Jedis jedis = new Jedis(shardInfo);
         ObjectMapper mapper = new ObjectMapper(); // create a new ObjectMapper
         try {
             Player p1 = mapper.readValue(jedis.get("p1"), Player.class);
@@ -581,8 +599,10 @@ public class GameController {
    // @CrossOrigin(origins = "http://localhost:3000")
     @GetMapping("/getScores")
     public int[] getScores() {
-        JedisShardInfo shardInfo = new JedisShardInfo("localhost");
-        Jedis jedis = new Jedis(shardInfo);
+        URI redisUri = URI.create(System.getenv("REDIS_URL"));
+        Jedis jedis = new Jedis(redisUri);
+        //JedisShardInfo shardInfo = new JedisShardInfo("localhost");
+        //Jedis jedis = new Jedis(shardInfo);
         ObjectMapper mapper = new ObjectMapper();
         int[] scoreBoard = new int[4];
      
@@ -664,9 +684,10 @@ public class GameController {
     public void swap_cards(@RequestBody int[] swaps) {
         
 
-
-        JedisShardInfo shardInfo = new JedisShardInfo("localhost");
-        Jedis jedis = new Jedis(shardInfo);
+        URI redisUri = URI.create(System.getenv("REDIS_URL"));
+        Jedis jedis = new Jedis(redisUri);
+        //JedisShardInfo shardInfo = new JedisShardInfo("localhost");
+        //Jedis jedis = new Jedis(shardInfo);
         ObjectMapper mapper = new ObjectMapper();
         Player p1 = null;
         Player p2 = null;
@@ -764,8 +785,12 @@ public class GameController {
     @PostMapping("/startGame")
     public void startNewGame(HttpSession session) {
         
-        JedisShardInfo shardInfo = new JedisShardInfo("localhost");
-        Jedis jedis = new Jedis(shardInfo);
+
+
+        URI redisUri = URI.create(System.getenv("REDIS_URL"));
+        Jedis jedis = new Jedis(redisUri);
+        //JedisShardInfo shardInfo = new JedisShardInfo("localhost");
+        //Jedis jedis = new Jedis(shardInfo);
         ObjectMapper mapper = new ObjectMapper(); // create a new ObjectMapper
             jedis.set("gameState", "Swap");
         Player p1 = new Player("Player 1");
@@ -820,8 +845,10 @@ public class GameController {
    // @CrossOrigin(origins = "http://localhost:3000")
     @GetMapping("/getPlayerHand")
     public String[] getPlayerHand() {
-        JedisShardInfo shardInfo = new JedisShardInfo("localhost");
-        Jedis jedis = new Jedis(shardInfo);
+        URI redisUri = URI.create(System.getenv("REDIS_URL"));
+        Jedis jedis = new Jedis(redisUri);
+        //JedisShardInfo shardInfo = new JedisShardInfo("localhost");
+        //Jedis jedis = new Jedis(shardInfo);
         ObjectMapper mapper = new ObjectMapper(); // create a new ObjectMapper
     Player p1 = null;
     try {
@@ -840,8 +867,10 @@ public class GameController {
    // @CrossOrigin(origins = "http://localhost:3000")
     @GetMapping("/getComputerHand")
     public int getComputerHand(@RequestParam String playerName) {
-        JedisShardInfo shardInfo = new JedisShardInfo("localhost");
-        Jedis jedis = new Jedis(shardInfo);
+        URI redisUri = URI.create(System.getenv("REDIS_URL"));
+        Jedis jedis = new Jedis(redisUri);
+        //JedisShardInfo shardInfo = new JedisShardInfo("localhost");
+        //Jedis jedis = new Jedis(shardInfo);
         ObjectMapper mapper = new ObjectMapper(); 
         Player player = null;
         try {
