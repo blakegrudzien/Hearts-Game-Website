@@ -31,6 +31,13 @@ public class RedisConfig {
 
     public static JedisPool getPool() {
       try {
+          String redisUrl = System.getenv("REDIS_URL");
+          if (redisUrl == null || redisUrl.isEmpty()) {
+              throw new IllegalArgumentException("REDIS_URL environment variable is not set.");
+          }
+  
+          URI redisUri = URI.create(redisUrl);
+  
           TrustManager bogusTrustManager = new X509TrustManager() {
               public X509Certificate[] getAcceptedIssuers() {
                   return null;
@@ -57,13 +64,16 @@ public class RedisConfig {
           poolConfig.setTestWhileIdle(true);
   
           return new JedisPool(poolConfig,
-                  URI.create(System.getenv("REDIS_URL")),
+                  redisUri,
                   sslContext.getSocketFactory(),
                   sslContext.getDefaultSSLParameters(),
                   bogusHostnameVerifier);
   
       } catch (NoSuchAlgorithmException | KeyManagementException e) {
           throw new RuntimeException("Cannot obtain Redis connection!", e);
+      } catch (IllegalArgumentException e) {
+          throw new RuntimeException("REDIS_URL environment variable is not set or is invalid!", e);
       }
   }
+  
 }
