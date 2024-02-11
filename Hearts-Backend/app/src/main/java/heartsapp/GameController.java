@@ -32,10 +32,10 @@ import redis.clients.jedis.JedisPool;
 @SessionAttributes("gameState")
 public class GameController {
 
-    private final RedisConfig redisConfig;
+    private final JedisPool jedisPool;
 
-    public GameController(RedisConfig redisConfig) {
-        this.redisConfig = redisConfig;
+    public GameController(JedisPool jedisPool) {
+        this.jedisPool = jedisPool;
     }
 
     
@@ -796,7 +796,7 @@ public class GameController {
     public void startNewGame(HttpSession session) {
         System.out.println("Attempting to start a new game");
 
-        try (Jedis jedis = redisConfig.getJedisPool().getResource()) {
+        try (Jedis jedis = jedisPool.getResource()) {
             ObjectMapper mapper = new ObjectMapper();
 
             // Set initial game state
@@ -902,7 +902,7 @@ public class GameController {
     @GetMapping("/getPlayerHand")
     public String[] getPlayerHand() {
 
-        JedisPool jedisPool = redisConfig.getJedisPool();
+       // JedisPool jedisPool = redisConfig.getJedisPool();
 
         // Use try-with-resources to ensure proper resource management
         try (Jedis jedis = jedisPool.getResource()) {
