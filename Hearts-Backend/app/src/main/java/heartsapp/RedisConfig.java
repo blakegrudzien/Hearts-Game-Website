@@ -8,6 +8,8 @@ import org.springframework.data.redis.connection.jedis.JedisClientConfiguration;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.util.StringUtils;
+import redis.clients.jedis.JedisPool;
+import redis.clients.jedis.JedisPoolConfig;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -19,7 +21,21 @@ public class RedisConfig {
     private String redisUrl;
 
     @Bean
-    public JedisConnectionFactory jedisConnectionFactory() throws URISyntaxException {
+    public JedisPool jedisPool() throws URISyntaxException {
+        URI redisUri = new URI(redisUrl);
+
+        JedisPoolConfig poolConfig = new JedisPoolConfig();
+        if (redisUri.getScheme().equals("rediss")) {
+            poolConfig.setTestOnBorrow(true);
+            poolConfig.setTestOnReturn(true);
+        }
+
+        return new JedisPool(poolConfig, redisUri.getHost(), redisUri.getPort(),
+                2000, redisUri.getUserInfo().split(":", 2)[1]);
+    }
+
+    @Bean
+    public JedisConnectionFactory jedisConnectionFactory(JedisPool jedisPool) throws URISyntaxException {
         URI redisUri = new URI(redisUrl);
 
         RedisStandaloneConfiguration redisStandaloneConfiguration = new RedisStandaloneConfiguration();
@@ -27,19 +43,13 @@ public class RedisConfig {
         redisStandaloneConfiguration.setPort(redisUri.getPort());
         redisStandaloneConfiguration.setPassword(redisUri.getUserInfo().split(":", 2)[1]);
 
-        // Configure SSL
-        JedisClientConfiguration.JedisClientConfigurationBuilder jedisClientConfiguration = JedisClientConfiguration.builder();
-        if (redisUri.getScheme().equals("rediss")) {
-            jedisClientConfiguration.useSsl();
-        }
-
-        return new JedisConnectionFactory(redisStandaloneConfiguration, jedisClientConfiguration.build());
+        return new JedisConnectionFactory(redisStandaloneConfiguration);
     }
 
     @Bean
-    public RedisTemplate<String, Object> redisTemplate() throws URISyntaxException {
+    public RedisTemplate<String, Object> redisTemplate(JedisConnectionFactory jedisConnectionFactory) {
         RedisTemplate<String, Object> template = new RedisTemplate<>();
-        template.setConnectionFactory(jedisConnectionFactory());
+        template.setConnectionFactory(jedisConnectionFactory);
         return template;
     }
 }
