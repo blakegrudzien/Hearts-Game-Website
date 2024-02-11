@@ -24,8 +24,19 @@ repositories {
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    implementation 'org.springframework.session:spring-session-data-redis:2.5.3' // adjust the version if necessary
+    implementation 'redis.clients:jedis:3.7.0' // adjust the version if necessary
 }
 
 test {
     useJUnitPlatform()
 }
+
+sourceSets {
+    main {
+        java {
+            srcDirs = ['app/src/main/java']
+        }
+    }
+}
+
