@@ -9,6 +9,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
+
 import javax.servlet.http.HttpSession;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -24,11 +25,20 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import redis.clients.jedis.JedisShardInfo;
 import org.springframework.stereotype.Service;
 import redis.clients.jedis.Jedis;
+import redis.clients.jedis.JedisPool;
 
 @Service
 @RestController
 @SessionAttributes("gameState")
 public class GameController {
+
+    private final RedisConfig redisConfig;
+
+    public GameController(RedisConfig redisConfig) {
+        this.redisConfig = redisConfig;
+    }
+
+    
 
     /*
      * This function fetches the gamestate from redis then sends it to the frontend
@@ -784,10 +794,54 @@ public class GameController {
    // @CrossOrigin(origins = "http://localhost:3000")
     @PostMapping("/startGame")
     public void startNewGame(HttpSession session) {
+        System.out.println("Attempting to start a new game");
+
+        try (Jedis jedis = redisConfig.getJedisPool().getResource()) {
+            ObjectMapper mapper = new ObjectMapper();
+
+            // Set initial game state
+            jedis.set("gameState", "Swap");
+
+            // Create players and initialize game variables
+            Player p1 = new Player("Player 1");
+            Player p2 = new Player("Player 2");
+            Player p3 = new Player("Player 3");
+            Player p4 = new Player("Player 4");
+            int roundNumber = 1;
+            int trickNumber = 0;
+            String gameState = "Swap";
+            boolean heartsBroken = false;
+            int turn = 0;
+            Boolean[] validCard = new Boolean[13];
+            Card[] trick = new Card[4];
+            Card[] deck = new Card[52];
+            make_deck(deck);
+            shuffle_and_deal(deck, p1, p2, p3, p4);
+            p1.Sort_Hand();
+            p2.Sort_Hand();
+            p3.Sort_Hand();
+            p4.Sort_Hand();
+
+            // Store game state in Redis
+            jedis.set("p1", mapper.writeValueAsString(p1));
+            jedis.set("p2", mapper.writeValueAsString(p2));
+            jedis.set("p3", mapper.writeValueAsString(p3));
+            jedis.set("p4", mapper.writeValueAsString(p4));
+            jedis.set("turn", Integer.toString(turn));
+            jedis.set("round_number", Integer.toString(roundNumber));
+            jedis.set("trick_number", Integer.toString(trickNumber));
+            jedis.set("gameState", gameState);
+            jedis.set("trick", mapper.writeValueAsString(trick));
+            jedis.set("validCard", mapper.writeValueAsString(validCard));
+            jedis.set("heartsBroken", Boolean.toString(heartsBroken));
+        } catch (Exception e) {
+            e.printStackTrace();
+            // Handle exceptions as needed
+        }
         
 
 
-        URI redisUri = URI.create(System.getenv("REDIS_URL"));
+        /*URI redisUri = URI.create(System.getenv("REDIS_URL"));
         Jedis jedis = new Jedis(redisUri);
         //JedisShardInfo shardInfo = new JedisShardInfo("localhost");
         //Jedis jedis = new Jedis(shardInfo);
@@ -834,7 +888,9 @@ public class GameController {
             jedis.set("Hearts_Broken", Hearts_Broken.toString());
         } catch (Exception e) {
             e.printStackTrace();
-        }
+        }*/
+
+        
     }
 
 
@@ -845,10 +901,25 @@ public class GameController {
    // @CrossOrigin(origins = "http://localhost:3000")
     @GetMapping("/getPlayerHand")
     public String[] getPlayerHand() {
-        URI redisUri = URI.create(System.getenv("REDIS_URL"));
-        Jedis jedis = new Jedis(redisUri);
-        //JedisShardInfo shardInfo = new JedisShardInfo("localhost");
-        //Jedis jedis = new Jedis(shardInfo);
+
+        JedisPool jedisPool = redisConfig.getJedisPool();
+
+        // Use try-with-resources to ensure proper resource management
+        try (Jedis jedis = jedisPool.getResource()) {
+            // Perform the necessary operations with the Jedis instance
+            ObjectMapper mapper = new ObjectMapper();
+            Player p1 = mapper.readValue(jedis.get("p1"), Player.class);
+            return p1.getImageUrls();
+        } catch (IOException e) {
+            System.out.println("Exception while getting player from Redis: " + e.getMessage());
+            // Handle the exception as needed
+            return new String[0]; // or any other appropriate action
+        }
+
+
+
+       /*  JedisShardInfo shardInfo = new JedisShardInfo("localhost");
+        Jedis jedis = new Jedis(shardInfo);
         ObjectMapper mapper = new ObjectMapper(); // create a new ObjectMapper
     Player p1 = null;
     try {
@@ -856,7 +927,7 @@ public class GameController {
     } catch (Exception e) {
         System.out.println("Exception while getting player from Redis: " + e.getMessage());
     }
-    return p1.getImageUrls();
+    return p1.getImageUrls();*/
     }
 
 
