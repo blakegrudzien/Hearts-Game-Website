@@ -21,74 +21,53 @@ public class RedisConfig {
 
   private final JedisPool jedisPool;
 
-    public RedisConfig(JedisPool jedisPool) {
-        this.jedisPool = jedisPool;
-    }
+  public RedisConfig(JedisPool jedisPool) {
+      this.jedisPool = jedisPool;
+  }
 
-    public JedisPool getJedisPool() {
-        return jedisPool;
-    }
+  public JedisPool getJedisPool() {
+      return jedisPool;
+  }
 
-    public class RedisConfig {
+  public static JedisPool getPool() {
+    try {
+        // Log the value of REDIS_URL
+        String redisUrl = System.getenv("REDIS_URL");
+        System.out.println("REDIS_URL: " + redisUrl);
 
-      private static JedisPool pool;
-    
-      static {
-          getPool();
-      }
-    
-      private final JedisPool jedisPool;
-    
-      public RedisConfig(JedisPool jedisPool) {
-          this.jedisPool = jedisPool;
-      }
-    
-      public JedisPool getJedisPool() {
-          return jedisPool;
-      }
-    
-      public static JedisPool getPool() {
-        try {
-            // Log the value of REDIS_URL
-            String redisUrl = System.getenv("REDIS_URL");
-            System.out.println("REDIS_URL: " + redisUrl);
-    
-            TrustManager bogusTrustManager = new X509TrustManager() {
-                public X509Certificate[] getAcceptedIssuers() {
-                    return null;
-                }
-    
-                public void checkClientTrusted(X509Certificate[] certs, String authType) {
-                }
-    
-                public void checkServerTrusted(X509Certificate[] certs, String authType) {
-                }
-            };
-    
-            SSLContext sslContext = SSLContext.getInstance("SSL");
-            sslContext.init(null, new TrustManager[]{bogusTrustManager}, new java.security.SecureRandom());
-    
-            HostnameVerifier bogusHostnameVerifier = (hostname, session) -> true;
-    
-            JedisPoolConfig poolConfig = new JedisPoolConfig();
-            poolConfig.setMaxTotal(10);
-            poolConfig.setMaxIdle(5);
-            poolConfig.setMinIdle(1);
-            poolConfig.setTestOnBorrow(true);
-            poolConfig.setTestOnReturn(true);
-            poolConfig.setTestWhileIdle(true);
-    
-            return new JedisPool(poolConfig,
-                    URI.create(redisUrl),  // Use the retrieved REDIS_URL
-                    sslContext.getSocketFactory(),
-                    sslContext.getDefaultSSLParameters(),
-                    bogusHostnameVerifier);
-    
-        } catch (NoSuchAlgorithmException | KeyManagementException e) {
-            throw new RuntimeException("Cannot obtain Redis connection!", e);
-        }
-      }
+        TrustManager bogusTrustManager = new X509TrustManager() {
+            public X509Certificate[] getAcceptedIssuers() {
+                return null;
+            }
+
+            public void checkClientTrusted(X509Certificate[] certs, String authType) {
+            }
+
+            public void checkServerTrusted(X509Certificate[] certs, String authType) {
+            }
+        };
+
+        SSLContext sslContext = SSLContext.getInstance("SSL");
+        sslContext.init(null, new TrustManager[]{bogusTrustManager}, new java.security.SecureRandom());
+
+        HostnameVerifier bogusHostnameVerifier = (hostname, session) -> true;
+
+        JedisPoolConfig poolConfig = new JedisPoolConfig();
+        poolConfig.setMaxTotal(10);
+        poolConfig.setMaxIdle(5);
+        poolConfig.setMinIdle(1);
+        poolConfig.setTestOnBorrow(true);
+        poolConfig.setTestOnReturn(true);
+        poolConfig.setTestWhileIdle(true);
+
+        return new JedisPool(poolConfig,
+                URI.create(redisUrl),  // Use the retrieved REDIS_URL
+                sslContext.getSocketFactory(),
+                sslContext.getDefaultSSLParameters(),
+                bogusHostnameVerifier);
+
+    } catch (NoSuchAlgorithmException | KeyManagementException e) {
+        throw new RuntimeException("Cannot obtain Redis connection!", e);
     }
-    
-  
+  }
 }
