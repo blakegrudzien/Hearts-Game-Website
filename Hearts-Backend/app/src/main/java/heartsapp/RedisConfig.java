@@ -3,14 +3,13 @@ package heartsapp;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
-import org.springframework.data.redis.connection.jedis.JedisClientConfiguration;
-import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
-import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.util.StringUtils;
+import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
 
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.SSLParameters;
+import javax.net.ssl.SSLSocketFactory;
 import java.net.URI;
 import java.net.URISyntaxException;
 
@@ -25,31 +24,23 @@ public class RedisConfig {
         URI redisUri = new URI(redisUrl);
 
         JedisPoolConfig poolConfig = new JedisPoolConfig();
-        if (redisUri.getScheme().equals("rediss")) {
-            poolConfig.setTestOnBorrow(true);
-            poolConfig.setTestOnReturn(true);
+        // You can configure pool settings here if needed
+
+        if ("rediss".equals(redisUri.getScheme())) {
+            // Use SSL/TLS
+            SSLSocketFactory sslSocketFactory = (SSLSocketFactory) SSLSocketFactory.getDefault();
+            SSLParameters sslParameters = new SSLParameters();
+            HostnameVerifier hostnameVerifier = (hostname, session) -> true;
+            return new JedisPool(poolConfig, redisUri, sslSocketFactory, sslParameters, hostnameVerifier);
+        } else {
+            // Standard connection without SSL/TLS
+            return new JedisPool(poolConfig, redisUri);
         }
-
-        return new JedisPool(poolConfig, redisUri.getHost(), redisUri.getPort(),
-                2000, redisUri.getUserInfo().split(":", 2)[1]);
     }
 
     @Bean
-    public JedisConnectionFactory jedisConnectionFactory(JedisPool jedisPool) throws URISyntaxException {
-        URI redisUri = new URI(redisUrl);
-
-        RedisStandaloneConfiguration redisStandaloneConfiguration = new RedisStandaloneConfiguration();
-        redisStandaloneConfiguration.setHostName(redisUri.getHost());
-        redisStandaloneConfiguration.setPort(redisUri.getPort());
-        redisStandaloneConfiguration.setPassword(redisUri.getUserInfo().split(":", 2)[1]);
-
-        return new JedisConnectionFactory(redisStandaloneConfiguration);
-    }
-
-    @Bean
-    public RedisTemplate<String, Object> redisTemplate(JedisConnectionFactory jedisConnectionFactory) {
-        RedisTemplate<String, Object> template = new RedisTemplate<>();
-        template.setConnectionFactory(jedisConnectionFactory);
-        return template;
+    public Jedis jedis(JedisPool jedisPool) {
+        // Retrieve Jedis instance from the pool
+        return jedisPool.getResource();
     }
 }
