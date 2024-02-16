@@ -3,6 +3,8 @@ package heartsapp;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.session.data.redis.config.ConfigureRedisAction;
+
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
@@ -42,5 +44,11 @@ public class RedisConfig {
     public Jedis jedis(JedisPool jedisPool) {
         // Retrieve Jedis instance from the pool
         return jedisPool.getResource();
+    }
+
+
+    @Bean
+    public ConfigureRedisAction configureRedisAction() {
+        return ConfigureRedisAction.NO_OP;
     }
 }
