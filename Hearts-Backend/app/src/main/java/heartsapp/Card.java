@@ -106,14 +106,14 @@ public class Card {
 
         played = false;
         if(this.val<10){
-            imageURL = "/images/Cards/Modern/" + this.suit_char + "0" + this.val + ".jpg";
+            imageURL = "/Cards/Modern/" + this.suit_char + "0" + this.val + ".jpg";
         }
         else if(this.val == 14){
-            imageURL = "/images/Cards/Modern/" + this.suit_char + "01.jpg";
+            imageURL = "/Cards/Modern/" + this.suit_char + "01.jpg";
             
         }
         else{
-            imageURL = "/images/Cards/Modern/" + this.suit_char + this.val + ".jpg";
+            imageURL = "/Cards/Modern/" + this.suit_char + this.val + ".jpg";
         }
     }
 
@@ -140,13 +140,13 @@ public class Card {
 
         }
         if(this.val<10){
-            imageURL = "/images/Cards/Modern/" + this.suit_char + "0" + this.val + ".jpg";
+            imageURL = "/Cards/Modern/" + this.suit_char + "0" + this.val + ".jpg";
         }
         else if(this.val == 14){
-            imageURL = "/images/Cards/Modern/" + this.suit_char + "01.jpg";
+            imageURL = "/Cards/Modern/" + this.suit_char + "01.jpg";
         }
         else{
-            imageURL = "/images/Cards/Modern/" + this.suit_char + this.val + ".jpg";
+            imageURL = "/Cards/Modern/" + this.suit_char + this.val + ".jpg";
         }
     
     }

@@ -77,12 +77,12 @@ public String[] getImageUrls() {
         }
         Card Cur = this.hand[i];
         if (Cur.val < 10) {
-            imageUrls[i] = "/images/Cards/Modern/" + Cur.suit_char + "0" + Cur.val + ".jpg";
+            imageUrls[i] = "/Cards/Modern/" + Cur.suit_char + "0" + Cur.val + ".jpg";
         } else if (Cur.val == 14){
-            imageUrls[i] = "/images/Cards/Modern/" + Cur.suit_char + "01.jpg";
+            imageUrls[i] = "/Cards/Modern/" + Cur.suit_char + "01.jpg";
         }
         else{
-            imageUrls[i] = "/images/Cards/Modern/" + Cur.suit_char + Cur.val + ".jpg";
+            imageUrls[i] = "/Cards/Modern/" + Cur.suit_char + Cur.val + ".jpg";
         }
     }
     return imageUrls;
