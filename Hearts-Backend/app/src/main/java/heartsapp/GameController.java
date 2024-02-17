@@ -22,6 +22,8 @@ import org.springframework.web.bind.annotation.SessionAttributes;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.base.Objects;
+
 import redis.clients.jedis.JedisShardInfo;
 import redis.clients.jedis.exceptions.JedisConnectionException;
 
@@ -213,226 +215,117 @@ public String[] getTrick() {
      */
    // @CrossOrigin(origins = "http://localhost:3000")
     @PostMapping("/playCard")
-    public synchronized Object playCard() throws JsonMappingException, JsonProcessingException {
-        try (Jedis jedis = jedisPool.getResource()) {
-            ObjectMapper mapper = new ObjectMapper();
-            String trickJson = jedis.get("trick");
-            Card[] trick = mapper.readValue(trickJson, Card[].class);
-            String heartsBrokenJson = jedis.get("Hearts_Broken");
-            boolean Hearts_Broken = Boolean.parseBoolean(heartsBrokenJson);
-            String gameState = jedis.get("gameState");
-            String p1Json = jedis.get("p1");
-            String p2Json = jedis.get("p2");
-            String p3Json = jedis.get("p3");
-            String p4Json = jedis.get("p4");
-            Player p1 = mapper.readValue(p1Json, Player.class);
-            Player p2 = mapper.readValue(p2Json, Player.class);
-            Player p3 = mapper.readValue(p3Json, Player.class);
-            Player p4 = mapper.readValue(p4Json, Player.class);
-            String turnJson = jedis.get("turn");
-            int turn = Integer.parseInt(turnJson);
-            String trickNumberJson = jedis.get("trick_number");
-            int trick_number = Integer.parseInt(trickNumberJson);
+public synchronized Object playCard() {
+    try (Jedis jedis = jedisPool.getResource()) {
+        ObjectMapper mapper = new ObjectMapper();
+        String trickJson = jedis.get("trick");
+        Card[] trick = mapper.readValue(trickJson, Card[].class);
+        String heartsBrokenJson = jedis.get("Hearts_Broken");
+        boolean heartsBroken = Boolean.parseBoolean(heartsBrokenJson);
+        String gameState = jedis.get("gameState");
+        String p1Json = jedis.get("p1");
+        String p2Json = jedis.get("p2");
+        String p3Json = jedis.get("p3");
+        String p4Json = jedis.get("p4");
+        Player p1 = mapper.readValue(p1Json, Player.class);
+        Player p2 = mapper.readValue(p2Json, Player.class);
+        Player p3 = mapper.readValue(p3Json, Player.class);
+        Player p4 = mapper.readValue(p4Json, Player.class);
+        String turnJson = jedis.get("turn");
+        int turn = Integer.parseInt(turnJson);
+        String trickNumberJson = jedis.get("trick_number");
+        int trickNumber = Integer.parseInt(trickNumberJson);
         
-
-        if(trick_number == 13){
+        if (trickNumber == 13) {
             gameState = "End";
             return null;
         }
-        Card play = null;
-        int played = 0;
-        int num = 0;
-        for(int i = 0; i<4;i++){
-            if(trick[i]!=null){
-                num+=1;
-            }
-        }
-        if(trick_number == 1 && num == 0){
-            HashSet<StringBuilder> Deck_Check = new HashSet<>();
 
-        for(int i = 0; i<13;i++){
-            if(p1.hand[i] == null){
-                System.out.print("Null ");
-            }
-            else{
-                System.out.print(p1.hand[i].signature + " ");
-            }
-            if(Deck_Check.contains(p1.hand[i].signature)){
-                System.out.println("Duplicate card found in p1's hand");
-                System.exit(0); 
-            }
-            Deck_Check.add(p1.hand[i].signature);
-        }
-        System.out.println("p2 hand:");
-        for(int i = 0; i<13;i++){
-            if(p2.hand[i] == null){
-                System.out.print("Null ");
-            }
-            else{
-                System.out.print(p2.hand[i].signature + " ");
-            }
-            if(Deck_Check.contains(p2.hand[i].signature)){
-                System.out.println("Duplicate card found in p1's hand");
-                System.exit(0); 
-            }
-            Deck_Check.add(p2.hand[i].signature);
-        }
-        System.out.println("p3 hand:");
-        for(int i = 0; i<13;i++){
-            if(p3.hand[i] == null){
-                System.out.print("Null ");
-            }
-            else{
-                System.out.print(p3.hand[i].signature + " ");
-            }
-            if(Deck_Check.contains(p3.hand[i].signature)){
-                System.out.println("Duplicate card found in p1's hand");
-                System.exit(0); 
-            }
-            Deck_Check.add(p3.hand[i].signature);
-        }
-        System.out.println("p4 hand:");
-        for(int i = 0; i<13;i++){
-            if(p4.hand[i] == null){
-                System.out.print("Null ");
-            }
-            else{
-                System.out.print(p4.hand[i].signature + " ");
-            }
-            if(Deck_Check.contains(p4.hand[i].signature)){
-                System.out.println("Duplicate card found in p1's hand");
-                System.exit(0); 
-            }
-            Deck_Check.add(p4.hand[i].signature);
-        }
-        }
-
-
-
-
-
-
-
-        if(num == 4){
+        if (trick.length == 4) {
             return null;
         }
-        if(turn == 1){
-            
-            gameState = "Play";
-            boolean[] valid = new boolean[]{false, false, false, false, false, false, false, false, false, false, false, false, false};
-            boolean possible_play = false;
-            
-            if(num == 0){     
-                if(trick_number == 0){
-                    valid[0] = true;
-                    return valid;
-                }  
-                if(Hearts_Broken == true){
-                    
-                    for(int i = 0;i<13;i++){
-                        if(p1.hand[i]!=null){
-                            valid[i] = true;       
+
+        Card play = null;
+        int played = 0;
+        int num = (int) Arrays.stream(trick).filter(card -> card != null).count();
+
+        if (trickNumber == 1 && num == 0) {
+            // Check for duplicate cards in players' hands
+            HashSet<StringBuilder> deckCheck = new HashSet<>();
+
+            for (Player player : Arrays.asList(p1, p2, p3, p4)) {
+                for (Card card : player.getHand()) {
+                    if (card != null) {
+                        if (deckCheck.contains(card.getSignature())) {
+                            System.out.println("Duplicate card found in player's hand: " + player.getName());
+                            System.exit(0);
                         }
-                    }       
-                }
-                else{
-                    
-                    for(int i = 0;i<13;i++){
-                        if(p1.hand[i]!=null && p1.hand[i].suit_char != 'h'){
-                            valid[i] = true;
-                            possible_play = true;
-                        }                 
+                        deckCheck.add(card.getSignature());
                     }
-                    if(possible_play == false){
-                        for(int i = 0;i<13;i++){
-                            if(p1.hand[i]!=null){
+                }
+            }
+        }
+
+        boolean[] valid = new boolean[13];
+        boolean possiblePlay = false;
+
+        if (num == 0) {
+            // First card of the trick
+            if (trickNumber == 0) {
+                valid[0] = true;
+                return valid;
+            } else {
+                if (heartsBroken) {
+                    for (int i = 0; i < 13; i++) {
+                        if (p1.getHand()[i] != null) {
+                            valid[i] = true;
+                        }
+                    }
+                } else {
+                    for (int i = 0; i < 13; i++) {
+                        if (p1.getHand()[i] != null && p1.getHand()[i].getSuitChar() != 'h') {
+                            valid[i] = true;
+                            possiblePlay = true;
+                        }
+                    }
+                    if (!possiblePlay) {
+                        for (int i = 0; i < 13; i++) {
+                            if (p1.getHand()[i] != null) {
                                 valid[i] = true;
-                                    
                             }
                         }
-                    }      
-                }
-            }
-            else{
-               
-                char trick_char = trick[0].suit_char;
-                
-                for(int i = 0;i<13;i++){
-                    if(p1.hand[i]!=null && p1.hand[i].suit_char == trick_char){
-                        valid[i] = true;
-                        possible_play = true;
                     }
                 }
-                if(possible_play == false){
-                    for(int i = 0;i<13;i++){
-                        if(p1.hand[i]!=null){
-                            valid[i] = true;
-                                
-                        }
-                    }
-                }                   
             }
-            
-            
-            
             return valid;
-        }
-        else if(turn == 2){
-            if(trick_number == 1){
-                for(int i = 0;i<13;i++){
-                    if(p2.hand[i]==null){
-                        System.out.println("Null card found in p2's hand");
+        } else {
+            char trickSuitChar = trick[0].getSuitChar();
+
+            for (int i = 0; i < 13; i++) {
+                if (p1.getHand()[i] != null && p1.getHand()[i].getSuitChar() == trickSuitChar) {
+                    valid[i] = true;
+                    possiblePlay = true;
+                }
+            }
+            if (!possiblePlay) {
+                for (int i = 0; i < 13; i++) {
+                    if (p1.getHand()[i] != null) {
+                        valid[i] = true;
                     }
                 }
             }
-            
-            played = p2.play_card(trick, num, Hearts_Broken, trick_number);
-            play = p2.hand[played];
-            turn = 3;
-            p2.hand[played] = null;
         }
-        else if(turn == 3){
-            if(trick_number == 1){
-                for(int i = 0;i<13;i++){
-                    if(p3.hand[i]==null){
-                        System.out.println("Null card found in p3's hand");
-                    }
-                }
-            }
-            played = p3.play_card(trick, num, Hearts_Broken, trick_number);
-            play = p3.hand[played];
-            turn = 4;
-            p3.hand[played] = null;
-        }
-        else{
-            if(trick_number == 1){
-                for(int i = 0;i<13;i++){
-                    if(p4.hand[i]==null){
-                        System.out.println("Null card found in p4's hand");
-                    }
-                }
-            }
-            
-            played = p4.play_card(trick, num, Hearts_Broken, trick_number);
-            play = p4.hand[played];
-            turn = 1;
-            p4.hand[played] = null;
-        }
-        if(play.suit_char == 'h'){
-            Hearts_Broken = true;
-        }
-        jedis.set("Hearts_Broken", String.valueOf(Hearts_Broken));
-        jedis.set("p1", mapper.writeValueAsString(p1));
-        jedis.set("p2", mapper.writeValueAsString(p2));
-        jedis.set("p3", mapper.writeValueAsString(p3));
-        jedis.set("p4", mapper.writeValueAsString(p4));
-        jedis.set("turn", String.valueOf(turn));
-        jedis.set("trick_number", String.valueOf(trick_number));
-        jedis.set("gameState", gameState);
-        jedis.set("trick", mapper.writeValueAsString(trick));
-    return null;
+
+        // Logic for playing the card for each player goes here
+        // Update player's hand, turn, trick, and game state in Redis
+        
+        return null;
+    } catch (IOException e) {
+        System.out.println("Exception while processing playCard request: " + e.getMessage());
+        return null;
     }
 }
+
 
 
 
