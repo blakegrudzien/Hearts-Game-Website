@@ -23,6 +23,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import redis.clients.jedis.JedisShardInfo;
+import redis.clients.jedis.exceptions.JedisConnectionException;
+
 import org.springframework.stereotype.Service;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
@@ -46,20 +48,14 @@ public class GameController {
     
     //@CrossOrigin(origins = "http://localhost:3000")
     @GetMapping("/getGameState")
-    public String getGameState() {
-        URI redisUri = URI.create(System.getenv("REDIS_URL"));
-        Jedis jedis = new Jedis(redisUri);
-        //JedisShardInfo shardInfo = new JedisShardInfo("localhost");
-        //Jedis jedis = new Jedis(shardInfo);
-        String gameState = null;
-        try {
-            gameState = jedis.get("gameState");
-            
-        } catch (Exception e) {
-            System.out.println("Exception while getting gameState from Redis: " + e.getMessage());
-        }
-        return gameState;
+public String getGameState() {
+    try (Jedis jedis = jedisPool.getResource()) {
+        return jedis.get("gameState");
+    } catch (Exception e) {
+        System.out.println("Exception while getting gameState from Redis: " + e.getMessage());
+        return null;
     }
+}
 
 
     /*
@@ -67,21 +63,21 @@ public class GameController {
      */
 
    // @CrossOrigin(origins = "http://localhost:3000")
-    @GetMapping("/getturn")
-    public Integer getturn() {
-        URI redisUri = URI.create(System.getenv("REDIS_URL"));
-        Jedis jedis = new Jedis(redisUri);
-        //JedisShardInfo shardInfo = new JedisShardInfo("localhost");
-        //Jedis jedis = new Jedis(shardInfo);
-        Integer turn = null;
-        try {
-            turn = Integer.parseInt(jedis.get("turn"));
-            
-        } catch (Exception e) {
-            System.out.println("Exception while getting turn from Redis: " + e.getMessage());
-        }
-        return turn;
-    }
+   @GetMapping("/getturn")
+   public Integer getTurn() {
+       try (Jedis jedis = jedisPool.getResource()) {
+           String turnStr = jedis.get("turn");
+           if (turnStr != null) {
+               return Integer.parseInt(turnStr);
+           } else {
+               // Handle the case where the turn is not set in Redis
+               return null;
+           }
+       } catch (Exception e) {
+           System.out.println("Exception while getting turn from Redis: " + e.getMessage());
+           return null;
+       }
+   }
 
 
     /*
@@ -89,29 +85,30 @@ public class GameController {
      */
     //@CrossOrigin(origins = "http://localhost:3000")
     @GetMapping("/getTrick")
-    public String[] getTrick() {
-        URI redisUri = URI.create(System.getenv("REDIS_URL"));
-        Jedis jedis = new Jedis(redisUri);
-        //JedisShardInfo shardInfo = new JedisShardInfo("localhost");
-       // Jedis jedis = new Jedis(shardInfo);
+public String[] getTrick() {
+    try (Jedis jedis = jedisPool.getResource()) {
         ObjectMapper mapper = new ObjectMapper();
         String[] trickList = new String[4];
-        Card[] trick = null;
-        try {
-            String trickJson = jedis.get("trick");
-            trick = mapper.readValue(trickJson, Card[].class);
-            
-        } catch (Exception e) {
-            System.out.println("Exception while getting trick from Redis: " + e.getMessage());
+        
+        String trickJson = jedis.get("trick");
+        if (trickJson == null) {
+            // Handle the case where the trick is not set in Redis
+            return new String[0];
         }
 
-        for(int i = 0;i<4;i++){
-            if(trick[i]!=null){
+        Card[] trick = mapper.readValue(trickJson, Card[].class);
+
+        for (int i = 0; i < 4; i++) {
+            if (trick[i] != null) {
                 trickList[i] = trick[i].imageURL;
             }
         }
-        return trickList != null ? trickList : new String[0];
+        return trickList;
+    } catch (Exception e) {
+        System.out.println("Exception while getting trick from Redis: " + e.getMessage());
+        return new String[0];
     }
+}
 
 
 
@@ -119,73 +116,72 @@ public class GameController {
      * This function fetches the round number from redis then sends it to the frontend
      */
    // @CrossOrigin(origins = "http://localhost:3000")
-    @GetMapping("/getRoundNumber")
-    public int getRoundNumber() {
-        URI redisUri = URI.create(System.getenv("REDIS_URL"));
-        Jedis jedis = new Jedis(redisUri);
-        //JedisShardInfo shardInfo = new JedisShardInfo("localhost");
-        //Jedis jedis = new Jedis(shardInfo);
-        
-        String round_numberStr = jedis.get("round_number");
-        if (round_numberStr == null) {
-            // Handle the case where the round number is not set in Redis
-            return -1;
-        }
-        
-        int roundNumber = Integer.parseInt(round_numberStr);
-        return roundNumber;
-    }
+   @GetMapping("/getRoundNumber")
+   public int getRoundNumber() {
+       try (Jedis jedis = jedisPool.getResource()) {
+           String roundNumberStr = jedis.get("round_number");
+           if (roundNumberStr == null) {
+               // Handle the case where the round number is not set in Redis
+               return -1;
+           }
+           
+           return Integer.parseInt(roundNumberStr);
+       } catch (Exception e) {
+           System.out.println("Exception while getting round number: " + e.getMessage());
+           return -1;
+       }
+   }
     
 
     /*
      * This function takes the card that the player has chosen and adds it to the trick and removes it from their hand
      */
    // @CrossOrigin(origins = "http://localhost:3000")
-    @PostMapping("/player_plays")
-    public void playerPlays(@RequestBody Map<String, Integer> payload) {
-        URI redisUri = URI.create(System.getenv("REDIS_URL"));
-        Jedis jedis = new Jedis(redisUri);
-        //JedisShardInfo shardInfo = new JedisShardInfo("localhost");
-        //Jedis jedis = new Jedis(shardInfo);
-        ObjectMapper mapper = new ObjectMapper();
-        int turn = 0;
-
-        try {
-            int index = payload.get("index");
-            turn = Integer.parseInt(jedis.get("turn"));
-            String p1Json = jedis.get("p1");
-            String heartsBrokenJson = jedis.get("Hearts_Broken");
-            boolean Hearts_Broken = Boolean.parseBoolean(heartsBrokenJson);
-            Player p1 = mapper.readValue(p1Json, Player.class);   
-            Card playedCard = p1.hand[index];
-            p1.hand[index] = null;
-            p1Json = mapper.writeValueAsString(p1);
-            jedis.set("p1", p1Json);
-            String trickJson = jedis.get("trick");
-            Card[] trick = mapper.readValue(trickJson, Card[].class);
-
-            for(int i = 0;i<4;i++){
-                if(trick[i] == null){
-                    trick[i] = playedCard;
-                    trick[i].Holder = p1;
-                    if(trick[i].suit_char == 'h'){
-                        Hearts_Broken = true;
-                    }
-                    break;
-                }
-            }
-            
-            turn +=1;
-            String updatedTrickJson = mapper.writeValueAsString(trick);
-            p1Json = mapper.writeValueAsString(p1);
-            jedis.set("p1", p1Json);
-            jedis.set("Hearts_Broken", String.valueOf(Hearts_Broken));           
-            jedis.set("turn", String.valueOf(turn));
-            jedis.set("trick", updatedTrickJson);
-        } catch (Exception e) {
-            System.out.println("Exception while playing card: " + e.getMessage());
-        }
-    }
+   @PostMapping("/player_plays")
+   public void playerPlays(@RequestBody Map<String, Integer> payload) {
+       try (Jedis jedis = jedisPool.getResource()) {
+           int index = payload.get("index");
+           int turn = Integer.parseInt(jedis.get("turn"));
+           ObjectMapper mapper = new ObjectMapper();
+           
+           String p1Json = jedis.get("p1");
+           boolean heartsBroken = Boolean.parseBoolean(jedis.get("Hearts_Broken"));
+           
+           Player p1 = mapper.readValue(p1Json, Player.class);
+           Card playedCard = p1.hand[index];
+           p1.hand[index] = null;
+           
+           // Update player's hand in Redis
+           p1Json = mapper.writeValueAsString(p1);
+           jedis.set("p1", p1Json);
+           
+           // Update trick in Redis
+           String trickJson = jedis.get("trick");
+           Card[] trick = mapper.readValue(trickJson, Card[].class);
+   
+           for (int i = 0; i < 4; i++) {
+               if (trick[i] == null) {
+                   trick[i] = playedCard;
+                   trick[i].setHolder(p1);
+                   if (trick[i].getSuitChar() == 'h') {
+                       heartsBroken = true;
+                   }
+                   break;
+               }
+           }
+   
+           // Update Hearts_Broken and turn in Redis
+           jedis.set("Hearts_Broken", String.valueOf(heartsBroken));
+           jedis.set("turn", String.valueOf(turn + 1));
+   
+           // Update trick in Redis
+           String updatedTrickJson = mapper.writeValueAsString(trick);
+           jedis.set("trick", updatedTrickJson);
+       } catch (Exception e) {
+           System.out.println("Exception while playing card: " + e.getMessage());
+       }
+   }
+   
 
 
     /*
@@ -194,14 +190,18 @@ public class GameController {
     //@CrossOrigin(origins = "http://localhost:3000")
     @GetMapping("/getTrickNumber")
     public Integer getTrickNumber() {
-        URI redisUri = URI.create(System.getenv("REDIS_URL"));
-        Jedis jedis = new Jedis(redisUri);
-        //JedisShardInfo shardInfo = new JedisShardInfo("localhost");
-        //Jedis jedis = new Jedis(shardInfo);
-        int trick_number = Integer.parseInt(jedis.get("trick_number"));
-        
-        return trick_number;
+    try (Jedis jedis = jedisPool.getResource()) {
+        String trickNumberStr = jedis.get("trick_number");
+        if (trickNumberStr != null) {
+            return Integer.parseInt(trickNumberStr);
+        } else {
+            return 0; // Or any default value you prefer
+        }
+    } catch (NumberFormatException | JedisConnectionException e) {
+        System.out.println("Exception while getting trick number from Redis: " + e.getMessage());
+        return null;
     }
+}
 
 
 
@@ -214,29 +214,25 @@ public class GameController {
    // @CrossOrigin(origins = "http://localhost:3000")
     @PostMapping("/playCard")
     public synchronized Object playCard() throws JsonMappingException, JsonProcessingException {
-        URI redisUri = URI.create(System.getenv("REDIS_URL"));
-        Jedis jedis = new Jedis(redisUri);
-        //JedisShardInfo shardInfo = new JedisShardInfo("localhost");
-        //Jedis jedis = new Jedis(shardInfo);
-        ObjectMapper mapper = new ObjectMapper();
-        String trickJson = jedis.get("trick");
-        Card[] trick = mapper.readValue(trickJson, Card[].class);
-        String heartsBrokenJson = jedis.get("Hearts_Broken");
-        String gameState = jedis.get("gameState");
-        String p1Json = jedis.get("p1");
-        String p2Json = jedis.get("p2");
-        String p3Json = jedis.get("p3");
-        String p4Json = jedis.get("p4");
-        Player p1 = mapper.readValue(p1Json, Player.class);
-        Player p2 = mapper.readValue(p2Json, Player.class);
-        Player p3 = mapper.readValue(p3Json, Player.class);
-        Player p4 = mapper.readValue(p4Json, Player.class);
-        String turnJson = jedis.get("turn");
-        String trick_numberJson = jedis.get("trick_number");
-        boolean Hearts_Broken = Boolean.parseBoolean(heartsBrokenJson);
-        int turn = Integer.parseInt(turnJson);
-        int trick_number = Integer.parseInt(trick_numberJson);
-
+        try (Jedis jedis = jedisPool.getResource()) {
+            ObjectMapper mapper = new ObjectMapper();
+            String trickJson = jedis.get("trick");
+            Card[] trick = mapper.readValue(trickJson, Card[].class);
+            String heartsBrokenJson = jedis.get("Hearts_Broken");
+            boolean Hearts_Broken = Boolean.parseBoolean(heartsBrokenJson);
+            String gameState = jedis.get("gameState");
+            String p1Json = jedis.get("p1");
+            String p2Json = jedis.get("p2");
+            String p3Json = jedis.get("p3");
+            String p4Json = jedis.get("p4");
+            Player p1 = mapper.readValue(p1Json, Player.class);
+            Player p2 = mapper.readValue(p2Json, Player.class);
+            Player p3 = mapper.readValue(p3Json, Player.class);
+            Player p4 = mapper.readValue(p4Json, Player.class);
+            String turnJson = jedis.get("turn");
+            int turn = Integer.parseInt(turnJson);
+            String trickNumberJson = jedis.get("trick_number");
+            int trick_number = Integer.parseInt(trickNumberJson);
         
 
         if(trick_number == 13){
@@ -436,6 +432,7 @@ public class GameController {
         jedis.set("trick", mapper.writeValueAsString(trick));
     return null;
     }
+}
 
 
 
@@ -445,13 +442,8 @@ public class GameController {
 
     //@CrossOrigin(origins = "http://localhost:3000")
     @PostMapping("/clearTrick")
-    public void clearTrick() {
-        URI redisUri = URI.create(System.getenv("REDIS_URL"));
-        Jedis jedis = new Jedis(redisUri);
-        //JedisShardInfo shardInfo = new JedisShardInfo("localhost");
-        
-        //Jedis jedis = new Jedis(shardInfo);
-
+public void clearTrick() {
+    try (Jedis jedis = jedisPool.getResource()) {
         ObjectMapper mapper = new ObjectMapper();
         String trickNumberStr = jedis.get("trick_number");
         int trickNumber = trickNumberStr != null ? Integer.parseInt(trickNumberStr) : 0;
@@ -473,217 +465,187 @@ public class GameController {
             trick = mapper.readValue(jedis.get("trick"), Card[].class);
             turn = Integer.parseInt(jedis.get("turn"));
         } catch (IOException e) {
-            e.printStackTrace();
+            System.out.println("Exception while reading from Redis or converting values: " + e.getMessage());
         }
-        char suit_char = trick[0].suit_char;
-        int points = trick[0].point_value;
-        Player winner = trick[0].Holder;
-        int max = trick[0].val;
+
+        char suitChar = trick[0].getSuitChar();
+        int points = trick[0].getPointValue();
+        Player winner = trick[0].getHolder();
+        int max = trick[0].getVal();
         trick[0] = null;
         trickNumber += 1;
         
-        
-        for(int i = 1;i<4;i++){
-            if(trick[i].suit_char == suit_char){
-                if(trick[i].val > max){
-                    max = trick[i].val;
-                    winner = trick[i].Holder;
+        for(int i = 1; i < 4; i++) {
+            if(trick[i].getSuitChar() == suitChar) {
+                if(trick[i].getVal() > max) {
+                    max = trick[i].getVal();
+                    winner = trick[i].getHolder();
                 }
             }
-            points+=trick[i].point_value;
+            points += trick[i].getPointValue();
         }
         
-        if(winner.name.equals("Player 1")){
-            
-            p1.score += points;
+        if(winner.getName().equals("Player 1")) {
+            p1.setScore(p1.getScore() + points);
             turn = 1;
-        }
-        else if(winner.name.equals("Player 2")){
-           
-            p2.score += points;
+        } else if(winner.getName().equals("Player 2")) {
+            p2.setScore(p2.getScore() + points);
             turn = 2;
-        }
-        else if(winner.name.equals("Player 3")){
-           
-            p3.score += points;
+        } else if(winner.getName().equals("Player 3")) {
+            p3.setScore(p3.getScore() + points);
             turn = 3;
-        }
-        else{
-            
-            p4.score += points;
+        } else {
+            p4.setScore(p4.getScore() + points);
             turn = 4;
         }
 
-        for(int i = 0;i<4;i++){
+        for(int i = 0; i < 4; i++) {
             trick[i] = null;
         }
         gameState = "Scoring";
         
-
-        try {
-            jedis.set("trick_number", Integer.toString(trickNumber));
-            jedis.set("gameState", gameState);
-            jedis.set("turn", Integer.toString(turn));
-            jedis.set("p1", mapper.writeValueAsString(p1));
-            jedis.set("p2", mapper.writeValueAsString(p2));
-            jedis.set("p3", mapper.writeValueAsString(p3));
-            jedis.set("p4", mapper.writeValueAsString(p4));
-            jedis.set("trick", mapper.writeValueAsString(trick));
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-        }
+        jedis.set("trick_number", Integer.toString(trickNumber));
+        jedis.set("gameState", gameState);
+        jedis.set("turn", Integer.toString(turn));
+        jedis.set("p1", mapper.writeValueAsString(p1));
+        jedis.set("p2", mapper.writeValueAsString(p2));
+        jedis.set("p3", mapper.writeValueAsString(p3));
+        jedis.set("p4", mapper.writeValueAsString(p4));
+        jedis.set("trick", mapper.writeValueAsString(trick));
+    } catch (IOException e) {
+        System.out.println("Exception while writing to Redis or converting values: " + e.getMessage());
+    }
 }
+
 
     /*
      * This function starts a newround by resetting the trick, and the players hands
      */
    // @CrossOrigin(origins = "http://localhost:3000")
-    @PostMapping("/startNewRound")
-    public void startNewRound() {
-        URI redisUri = URI.create(System.getenv("REDIS_URL"));
-        Jedis jedis = new Jedis(redisUri);
-        //JedisShardInfo shardInfo = new JedisShardInfo("localhost");
-       // Jedis jedis = new Jedis(shardInfo);
-        ObjectMapper mapper = new ObjectMapper(); // create a new ObjectMapper
-        try {
-            Player p1 = mapper.readValue(jedis.get("p1"), Player.class);
-            Player p2 = mapper.readValue(jedis.get("p2"), Player.class);
-            Player p3 = mapper.readValue(jedis.get("p3"), Player.class);
-            Player p4 = mapper.readValue(jedis.get("p4"), Player.class);
-            int turn = Integer.parseInt(jedis.get("turn"));
-            int round_number = Integer.parseInt(jedis.get("round_number"));
-            int trick_number = Integer.parseInt(jedis.get("trick_number"));
-            boolean Hearts_Broken = Boolean.parseBoolean(jedis.get("Hearts_Broken"));
-            Card[] trick = mapper.readValue(jedis.get("trick"), Card[].class);
-            Boolean[] ValidCard = mapper.readValue(jedis.get("ValidCard"), Boolean[].class);
-            String gameState = "Swap";
-            /*if(round_number % 4 == 0){
-                gameState = "Play";
-            }*/
-            
-            
-            Hearts_Broken = false;
-            round_number +=1;
-            if(round_number == 5){
-                round_number = 1;
-            }
-            trick_number = 0; 
-            Card[] deck = new Card[52];
-            p1.ResetHand();
-            p2.ResetHand();
-            p3.ResetHand();
-            p4.ResetHand();
-            p1.next = p2;
-            p2.next = p3;
-            p3.next = p4;
-            p4.next = p1;
-            make_deck(deck);
-            
-            shuffle_and_deal(deck, p1, p2, p3, p4);
-            p1.Sort_Hand();
-            p2.Sort_Hand();
-            p3.Sort_Hand();
-            p4.Sort_Hand();
-            turn = find_start(p1);
-            
-            jedis.set("p1", mapper.writeValueAsString(p1));
-            jedis.set("p2", mapper.writeValueAsString(p2));
-            jedis.set("p3", mapper.writeValueAsString(p3));
-            jedis.set("p4", mapper.writeValueAsString(p4));
-            jedis.set("turn", Integer.toString(turn));
-            jedis.set("round_number", Integer.toString(round_number));
-            jedis.set("trick_number", Integer.toString(trick_number));
-            jedis.set("Hearts_Broken", Boolean.toString(Hearts_Broken));
-            jedis.set("trick", mapper.writeValueAsString(trick));
-            jedis.set("ValidCard", mapper.writeValueAsString(ValidCard));
-            jedis.set("gameState", gameState);
-        } catch (IOException e) {
-            System.out.println("Exception while reading from Redis or converting values: " + e.getMessage());
-        }
-    }
+   @PostMapping("/startNewRound")
+   public void startNewRound() {
+       try (Jedis jedis = jedisPool.getResource()) {
+           ObjectMapper mapper = new ObjectMapper();
+           Player p1 = mapper.readValue(jedis.get("p1"), Player.class);
+           Player p2 = mapper.readValue(jedis.get("p2"), Player.class);
+           Player p3 = mapper.readValue(jedis.get("p3"), Player.class);
+           Player p4 = mapper.readValue(jedis.get("p4"), Player.class);
+           int turn = Integer.parseInt(jedis.get("turn"));
+           int roundNumber = Integer.parseInt(jedis.get("round_number"));
+           int trickNumber = Integer.parseInt(jedis.get("trick_number"));
+           boolean heartsBroken = Boolean.parseBoolean(jedis.get("heartsBroken"));
+           Card[] trick = mapper.readValue(jedis.get("trick"), Card[].class);
+           Boolean[] validCard = mapper.readValue(jedis.get("validCard"), Boolean[].class);
+           String gameState = "Swap";
+           
+           heartsBroken = false;
+           roundNumber += 1;
+           if (roundNumber == 5) {
+               roundNumber = 1;
+           }
+           trickNumber = 0;
+           Card[] deck = new Card[52];
+           p1.ResetHand();
+           p2.ResetHand();
+           p3.ResetHand();
+           p4.ResetHand();
+           p1.next = p2;
+           p2.next = p3;
+           p3.next = p4;
+           p4.next = p1;
+           make_deck(deck);
+           shuffle_and_deal(deck, p1, p2, p3, p4);
+           p1.Sort_Hand();
+           p2.Sort_Hand();
+           p3.Sort_Hand();
+           p4.Sort_Hand();
+           turn = find_start(p1);
+           
+           jedis.set("p1", mapper.writeValueAsString(p1));
+           jedis.set("p2", mapper.writeValueAsString(p2));
+           jedis.set("p3", mapper.writeValueAsString(p3));
+           jedis.set("p4", mapper.writeValueAsString(p4));
+           jedis.set("turn", Integer.toString(turn));
+           jedis.set("round_number", Integer.toString(roundNumber));
+           jedis.set("trick_number", Integer.toString(trickNumber));
+           jedis.set("heartsBroken", Boolean.toString(heartsBroken));
+           jedis.set("trick", mapper.writeValueAsString(trick));
+           jedis.set("validCard", mapper.writeValueAsString(validCard));
+           jedis.set("gameState", gameState);
+       } catch (IOException e) {
+           System.out.println("Exception while reading from Redis or converting values: " + e.getMessage());
+       }
+   }
+   
 
 
     /*
      * This function fetches the scores from redis then sends it to the frontend
      */
    // @CrossOrigin(origins = "http://localhost:3000")
-    @GetMapping("/getScores")
-    public int[] getScores() {
-        URI redisUri = URI.create(System.getenv("REDIS_URL"));
-        Jedis jedis = new Jedis(redisUri);
-        //JedisShardInfo shardInfo = new JedisShardInfo("localhost");
-        //Jedis jedis = new Jedis(shardInfo);
-        ObjectMapper mapper = new ObjectMapper();
-        int[] scoreBoard = new int[4];
-     
-
-        try {
-
-            String gameState = jedis.get("gameState");
-            Player p1 = mapper.readValue(jedis.get("p1"), Player.class);
-            Player p2 = mapper.readValue(jedis.get("p2"), Player.class);
-            Player p3 = mapper.readValue(jedis.get("p3"), Player.class);
-            Player p4 = mapper.readValue(jedis.get("p4"), Player.class);
-            
-            String trickNumberString = jedis.get("trick_number");
-            int trickNumber = Integer.parseInt(trickNumberString);
-
-            if(trickNumber == 13){
-                
-                    if(p1.score == 26){
-                        p1.score = 0;
-                        p2.score = 26;
-                        p3.score = 26;
-                        p4.score = 26;
-                    }
-                    else if(p2.score == 26){
-                        p2.score = 0;
-                        p1.score = 26;
-                        p3.score = 26;
-                        p4.score = 26;
-                    }
-                    else if(p3.score == 26){
-                        p3.score = 0;
-                        p1.score = 26;
-                        p2.score = 26;
-                        p4.score = 26;
-                    }
-                    else if(p4.score == 26){
-                        p4.score = 0;
-                        p1.score = 26;
-                        p2.score = 26;
-                        p3.score = 26;
-                    }
-
-                p1.overall_score += p1.score;
-                p2.overall_score += p2.score;
-                p3.overall_score += p3.score;
-                p4.overall_score += p4.score;
-
-                p1.score = 0;
-                p2.score = 0;
-                p3.score = 0;
-                p4.score = 0;
-            }
-            scoreBoard[0] = p1.score + p1.overall_score;
-            scoreBoard[1] = p2.score + p2.overall_score;
-            scoreBoard[2] = p3.score + p3.overall_score;
-            scoreBoard[3] = p4.score + p4.overall_score; 
-
-            jedis.set("p1", mapper.writeValueAsString(p1));
-            jedis.set("p2", mapper.writeValueAsString(p2));
-            jedis.set("p3", mapper.writeValueAsString(p3));
-            jedis.set("p4", mapper.writeValueAsString(p4));
-
-
-
-
-            jedis.set("gameState", "Play");  // Update the gameState in Redis
-        } catch (Exception e) {
-            System.out.println("Exception while getting scores from Redis: " + e.getMessage());
-        }
-        return scoreBoard;
-    }
+   @GetMapping("/getScores")
+   public int[] getScores() {
+       int[] scoreBoard = new int[4];
+       try (Jedis jedis = jedisPool.getResource()) {
+           ObjectMapper mapper = new ObjectMapper();
+           String gameState = jedis.get("gameState");
+           Player p1 = mapper.readValue(jedis.get("p1"), Player.class);
+           Player p2 = mapper.readValue(jedis.get("p2"), Player.class);
+           Player p3 = mapper.readValue(jedis.get("p3"), Player.class);
+           Player p4 = mapper.readValue(jedis.get("p4"), Player.class);
+           String trickNumberString = jedis.get("trick_number");
+           int trickNumber = Integer.parseInt(trickNumberString);
+   
+           if(trickNumber == 13){
+               if(p1.score == 26){
+                   p1.score = 0;
+                   p2.score = 26;
+                   p3.score = 26;
+                   p4.score = 26;
+               } else if(p2.score == 26){
+                   p2.score = 0;
+                   p1.score = 26;
+                   p3.score = 26;
+                   p4.score = 26;
+               } else if(p3.score == 26){
+                   p3.score = 0;
+                   p1.score = 26;
+                   p2.score = 26;
+                   p4.score = 26;
+               } else if(p4.score == 26){
+                   p4.score = 0;
+                   p1.score = 26;
+                   p2.score = 26;
+                   p3.score = 26;
+               }
+   
+               p1.overall_score += p1.score;
+               p2.overall_score += p2.score;
+               p3.overall_score += p3.score;
+               p4.overall_score += p4.score;
+   
+               p1.score = 0;
+               p2.score = 0;
+               p3.score = 0;
+               p4.score = 0;
+           }
+           scoreBoard[0] = p1.score + p1.overall_score;
+           scoreBoard[1] = p2.score + p2.overall_score;
+           scoreBoard[2] = p3.score + p3.overall_score;
+           scoreBoard[3] = p4.score + p4.overall_score; 
+   
+           jedis.set("p1", mapper.writeValueAsString(p1));
+           jedis.set("p2", mapper.writeValueAsString(p2));
+           jedis.set("p3", mapper.writeValueAsString(p3));
+           jedis.set("p4", mapper.writeValueAsString(p4));
+   
+           jedis.set("gameState", "Play");  // Update the gameState in Redis
+       } catch (Exception e) {
+           System.out.println("Exception while getting scores from Redis: " + e.getMessage());
+       }
+       return scoreBoard;
+   }
+   
 
     /*
      * This function performs the swap of cards between the players
@@ -691,98 +653,78 @@ public class GameController {
 
     //@CrossOrigin(origins = "http://localhost:3000")
     @PostMapping("/performSwap")
-    public void swap_cards(@RequestBody int[] swaps) {
-        
-
-        URI redisUri = URI.create(System.getenv("REDIS_URL"));
-        Jedis jedis = new Jedis(redisUri);
-        //JedisShardInfo shardInfo = new JedisShardInfo("localhost");
-        //Jedis jedis = new Jedis(shardInfo);
-        ObjectMapper mapper = new ObjectMapper();
-        Player p1 = null;
-        Player p2 = null;
-        Player p3 = null;
-        Player p4 = null;
-        int round = 0;
-        String gameState = null;
-        int turn = 0;
-
-        
-        try {
-            gameState = jedis.get("gameState");
-            p1 = mapper.readValue(jedis.get("p1"), Player.class);
-            p2 = mapper.readValue(jedis.get("p2"), Player.class);
-            p3 = mapper.readValue(jedis.get("p3"), Player.class);
-            p4 = mapper.readValue(jedis.get("p4"), Player.class);
-            round = Integer.parseInt(jedis.get("round_number"));
-            turn = Integer.parseInt(jedis.get("turn"));   
-        } catch (Exception e) {
-            System.out.println("Exception while getting players and round number from Redis: " + e.getMessage());
-        }
-
-        p1.next = p2;
-        p2.next = p3;
-        p3.next = p4;
-        p4.next = p1;  
-        
-
-        for(int i = 0;i<3;i++){
-            if(swaps[i] == -1){
-                
-                gameState = "Play";
-                turn = find_start(p1);
-                
-   
-                jedis.set("gameState", gameState);
-                return;
+    public void swapCards(@RequestBody int[] swaps) {
+        try (Jedis jedis = jedisPool.getResource()) {
+            ObjectMapper mapper = new ObjectMapper();
+            Player p1 = null;
+            Player p2 = null;
+            Player p3 = null;
+            Player p4 = null;
+            int round = 0;
+            String gameState = null;
+            int turn = 0;
+    
+            try {
+                gameState = jedis.get("gameState");
+                p1 = mapper.readValue(jedis.get("p1"), Player.class);
+                p2 = mapper.readValue(jedis.get("p2"), Player.class);
+                p3 = mapper.readValue(jedis.get("p3"), Player.class);
+                p4 = mapper.readValue(jedis.get("p4"), Player.class);
+                round = Integer.parseInt(jedis.get("round_number"));
+                turn = Integer.parseInt(jedis.get("turn"));   
+            } catch (Exception e) {
+                System.out.println("Exception while getting players and round number from Redis: " + e.getMessage());
             }
-            
-        }
-
-
-
-
-
-        p1.swap = swaps;
-
-
-
-
-        p2.choose_swaps();
-        p3.choose_swaps();
-        p4.choose_swaps();
-
-        Card[] temp = {null, null, null};
-
-        if(round % 4 == 1){
-            circle_swaps(p1, p2, p3, p4, temp);
-        }
-        else if(round % 4 == 3){
-            across_swaps(p1, p3, temp);
-            across_swaps(p2, p4, temp);
-        }
-        else{
-            circle_swaps(p4, p3, p2, p1, temp);
-        }
-        p1.Sort_Hand();
-        gameState = "Play";
-        turn = find_start(p1);
-
-
-
-        
-   
-        jedis.set("gameState", gameState);
-
-        try {
-            jedis.set("p1", mapper.writeValueAsString(p1));
-            jedis.set("p2", mapper.writeValueAsString(p2));
-            jedis.set("p3", mapper.writeValueAsString(p3));
-            jedis.set("p4", mapper.writeValueAsString(p4));
-            jedis.set("round_number", Integer.toString(round));
-            jedis.set("turn", Integer.toString(turn));
+    
+            p1.next = p2;
+            p2.next = p3;
+            p3.next = p4;
+            p4.next = p1;  
+    
+            for(int i = 0; i < 3; i++) {
+                if(swaps[i] == -1) {
+                    gameState = "Play";
+                    turn = find_start(p1);
+                    jedis.set("gameState", gameState);
+                    return;
+                }   
+            }
+    
+            p1.swap = swaps;
+    
+            p2.choose_swaps();
+            p3.choose_swaps();
+            p4.choose_swaps();
+    
+            Card[] temp = {null, null, null};
+    
+            if(round % 4 == 1) {
+                circle_swaps(p1, p2, p3, p4, temp);
+            } else if(round % 4 == 3) {
+                across_swaps(p1, p3, temp);
+                across_swaps(p2, p4, temp);
+            } else {
+                circle_swaps(p4, p3, p2, p1, temp);
+            }
+    
+            p1.Sort_Hand();
+            gameState = "Play";
+            turn = find_start(p1);
+            jedis.set("gameState", gameState);
+    
+            try {
+                jedis.set("p1", mapper.writeValueAsString(p1));
+                jedis.set("p2", mapper.writeValueAsString(p2));
+                jedis.set("p3", mapper.writeValueAsString(p3));
+                jedis.set("p4", mapper.writeValueAsString(p4));
+                jedis.set("round_number", Integer.toString(round));
+                jedis.set("turn", Integer.toString(turn));
+            } catch (Exception e) {
+                System.out.println("Exception while setting updated players and round number to Redis: " + e.getMessage());
+            }
         } catch (Exception e) {
-            System.out.println("Exception while setting updated players and round number to Redis: " + e.getMessage());
+            e.printStackTrace();
+            // Handle exceptions as needed
         }
     }
 
@@ -839,58 +781,6 @@ public class GameController {
             // Handle exceptions as needed
         }
         
-
-
-        /*URI redisUri = URI.create(System.getenv("REDIS_URL"));
-        Jedis jedis = new Jedis(redisUri);
-        //JedisShardInfo shardInfo = new JedisShardInfo("localhost");
-        //Jedis jedis = new Jedis(shardInfo);
-        ObjectMapper mapper = new ObjectMapper(); // create a new ObjectMapper
-            jedis.set("gameState", "Swap");
-        Player p1 = new Player("Player 1");
-        Player p2 = new Player("Player 2");
-        Player p3 = new Player("Player 3");
-        Player p4 = new Player("Player 4");
-        int round_number = 1;
-        int trick_number = 0;
-        String gameState = "Swap";
-        Boolean Hearts_Broken = false;
-        p1.next = p2;
-        p2.next = p3;
-        p3.next = p4;
-        p4.next = p1;
-        int turn = 0;
-        Boolean[] ValidCard = new Boolean[13]; 
-        Card[] trick = new Card[4];
-        Card[] deck = new Card[52];
-        make_deck(deck);
-       
-        shuffle_and_deal(deck, p1, p2, p3, p4); 
-        p1.Sort_Hand();
-        p2.Sort_Hand();
-        p3.Sort_Hand();
-        p4.Sort_Hand();
-
-
-        
-        try {
-            // serialize the players and round number to JSON and store them in Redis
-            jedis.set("p1", mapper.writeValueAsString(p1));
-            jedis.set("p2", mapper.writeValueAsString(p2));
-            jedis.set("p3", mapper.writeValueAsString(p3));
-            jedis.set("p4", mapper.writeValueAsString(p4));
-            jedis.set("turn", Integer.toString(turn));
-            jedis.set("round_number", Integer.toString(round_number));
-            jedis.set("trick_number", Integer.toString(trick_number));
-            jedis.set("gameState", gameState);
-            jedis.set("trick", mapper.writeValueAsString(trick));
-            jedis.set("ValidCard", mapper.writeValueAsString(ValidCard));
-            jedis.set("Hearts_Broken", Hearts_Broken.toString());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }*/
-
-        
     }
 
 
@@ -902,32 +792,17 @@ public class GameController {
     @GetMapping("/getPlayerHand")
     public String[] getPlayerHand() {
 
-       // JedisPool jedisPool = redisConfig.getJedisPool();
-
-        // Use try-with-resources to ensure proper resource management
         try (Jedis jedis = jedisPool.getResource()) {
-            // Perform the necessary operations with the Jedis instance
+ 
             ObjectMapper mapper = new ObjectMapper();
             Player p1 = mapper.readValue(jedis.get("p1"), Player.class);
             return p1.getImageUrls();
         } catch (IOException e) {
             System.out.println("Exception while getting player from Redis: " + e.getMessage());
-            // Handle the exception as needed
-            return new String[0]; // or any other appropriate action
+
+            return new String[0]; 
         }
 
-
-
-       /*  JedisShardInfo shardInfo = new JedisShardInfo("localhost");
-        Jedis jedis = new Jedis(shardInfo);
-        ObjectMapper mapper = new ObjectMapper(); // create a new ObjectMapper
-    Player p1 = null;
-    try {
-        p1 = mapper.readValue(jedis.get("p1"), Player.class);
-    } catch (Exception e) {
-        System.out.println("Exception while getting player from Redis: " + e.getMessage());
-    }
-    return p1.getImageUrls();*/
     }
 
 
@@ -935,28 +810,29 @@ public class GameController {
      * This function fetches the number of cards in the computer player's hand from redis then sends it to the frontend
      */
      
-   // @CrossOrigin(origins = "http://localhost:3000")
+
     @GetMapping("/getComputerHand")
     public int getComputerHand(@RequestParam String playerName) {
-        URI redisUri = URI.create(System.getenv("REDIS_URL"));
-        Jedis jedis = new Jedis(redisUri);
-        //JedisShardInfo shardInfo = new JedisShardInfo("localhost");
-        //Jedis jedis = new Jedis(shardInfo);
-        ObjectMapper mapper = new ObjectMapper(); 
-        Player player = null;
-        try {
-            player = mapper.readValue(jedis.get(playerName), Player.class);
-            
-        } catch (Exception e) {
-            System.out.println("Exception while getting player from Redis: " + e.getMessage());
-        }
-        int num = 0;
-        for(int i = 0;i<13;i++){
-            if(player.hand[i] != null){
-                num+=1;
+        try (Jedis jedis = jedisPool.getResource()) {
+            ObjectMapper mapper = new ObjectMapper(); 
+            Player player = null;
+            try {
+                player = mapper.readValue(jedis.get(playerName), Player.class);
+            } catch (Exception e) {
+                System.out.println("Exception while getting player from Redis: " + e.getMessage());
             }
+            int num = 0;
+            for(int i = 0; i < 13; i++) {
+                if(player != null && player.hand[i] != null) {
+                    num += 1;
+                }
+            }
+            return num;
+        } catch (Exception e) {
+            e.printStackTrace();
+            // Handle exceptions as needed
+            return 0; // or some default value
         }
-        return num;
     }
 
     /*
