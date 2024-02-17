@@ -234,8 +234,6 @@ public String[] getTrick() {
         String trickNumberJson = jedis.get("trick_number");
         int trick_number = Integer.parseInt(trickNumberJson);
 
-       
-
        if(trick_number == 13){
            gameState = "End";
            return null;
@@ -248,65 +246,7 @@ public String[] getTrick() {
                num+=1;
            }
        }
-       if(trick_number == 1 && num == 0){
-           HashSet<StringBuilder> Deck_Check = new HashSet<>();
-
-       for(int i = 0; i<13;i++){
-           if(p1.hand[i] == null){
-               System.out.print("Null ");
-           }
-           else{
-               System.out.print(p1.hand[i].signature + " ");
-           }
-           if(Deck_Check.contains(p1.hand[i].signature)){
-               System.out.println("Duplicate card found in p1's hand");
-               System.exit(0); 
-           }
-           Deck_Check.add(p1.hand[i].signature);
-       }
-       System.out.println("p2 hand:");
-       for(int i = 0; i<13;i++){
-           if(p2.hand[i] == null){
-               System.out.print("Null ");
-           }
-           else{
-               System.out.print(p2.hand[i].signature + " ");
-           }
-           if(Deck_Check.contains(p2.hand[i].signature)){
-               System.out.println("Duplicate card found in p1's hand");
-               System.exit(0); 
-           }
-           Deck_Check.add(p2.hand[i].signature);
-       }
-       System.out.println("p3 hand:");
-       for(int i = 0; i<13;i++){
-           if(p3.hand[i] == null){
-               System.out.print("Null ");
-           }
-           else{
-               System.out.print(p3.hand[i].signature + " ");
-           }
-           if(Deck_Check.contains(p3.hand[i].signature)){
-               System.out.println("Duplicate card found in p1's hand");
-               System.exit(0); 
-           }
-           Deck_Check.add(p3.hand[i].signature);
-       }
-       System.out.println("p4 hand:");
-       for(int i = 0; i<13;i++){
-           if(p4.hand[i] == null){
-               System.out.print("Null ");
-           }
-           else{
-               System.out.print(p4.hand[i].signature + " ");
-           }
-           if(Deck_Check.contains(p4.hand[i].signature)){
-               System.out.println("Duplicate card found in p1's hand");
-               System.exit(0); 
-           }
-           Deck_Check.add(p4.hand[i].signature);
-       }
-       }
+      
        if(num == 4){
            return null;
        }
@@ -322,15 +262,13 @@ public String[] getTrick() {
                    return valid;
                }  
                if(Hearts_Broken == true){
-                   
                    for(int i = 0;i<13;i++){
                        if(p1.hand[i]!=null){
                            valid[i] = true;       
                        }
                    }       
                }
-               else{
-                   
+               else{   
                    for(int i = 0;i<13;i++){
                        if(p1.hand[i]!=null && p1.hand[i].suit_char != 'h'){
                            valid[i] = true;
@@ -340,17 +278,14 @@ public String[] getTrick() {
                    if(possible_play == false){
                        for(int i = 0;i<13;i++){
                            if(p1.hand[i]!=null){
-                               valid[i] = true;
-                                   
+                               valid[i] = true;  
                            }
                        }
                    }      
                }
            }
-           else{
-              
+           else{   
                char trick_char = trick[0].suit_char;
-               
                for(int i = 0;i<13;i++){
                    if(p1.hand[i]!=null && p1.hand[i].suit_char == trick_char){
                        valid[i] = true;
@@ -360,53 +295,26 @@ public String[] getTrick() {
                if(possible_play == false){
                    for(int i = 0;i<13;i++){
                        if(p1.hand[i]!=null){
-                           valid[i] = true;
-                               
+                           valid[i] = true;        
                        }
                    }
                }                   
            }
-           
-           
-           
            return valid;
        }
        else if(turn == 2){
-           if(trick_number == 1){
-               for(int i = 0;i<13;i++){
-                   if(p2.hand[i]==null){
-                       System.out.println("Null card found in p2's hand");
-                   }
-               }
-           }
-           
            played = p2.play_card(trick, num, Hearts_Broken, trick_number);
            play = p2.hand[played];
            turn = 3;
            p2.hand[played] = null;
        }
-       else if(turn == 3){
-           if(trick_number == 1){
-               for(int i = 0;i<13;i++){
-                   if(p3.hand[i]==null){
-                       System.out.println("Null card found in p3's hand");
-                   }
-               }
-           }
+       else if(turn == 3){   
            played = p3.play_card(trick, num, Hearts_Broken, trick_number);
            play = p3.hand[played];
            turn = 4;
            p3.hand[played] = null;
        }
-       else{
-           if(trick_number == 1){
-               for(int i = 0;i<13;i++){
-                   if(p4.hand[i]==null){
-                       System.out.println("Null card found in p4's hand");
-                   }
-               }
-           }
-           
+       else{ 
            played = p4.play_card(trick, num, Hearts_Broken, trick_number);
            play = p4.hand[played];
            turn = 1;
