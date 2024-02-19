@@ -67,7 +67,7 @@ const PlayedCards = ({ setGameState, gameState, turn , setTurn}) => {
   
     const fetchData = async () => {
       const response = await fetch(`${API_URL}/getGameState`);
-      const newstate = await response.json();
+      const newstate = await response.text();
       setGameState(newstate);
     };
   
