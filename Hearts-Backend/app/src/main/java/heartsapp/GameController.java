@@ -116,10 +116,10 @@ public String[] getTrick() {
      * This function fetches the round number from redis then sends it to the frontend
      */
    // @CrossOrigin(origins = "http://localhost:3000")
-   @GetMapping("/getRoundNumber")
-   public int getRoundNumber() {
+   @GetMapping("/getroundNumber")
+   public int getroundNumber() {
        try (Jedis jedis = jedisPool.getResource()) {
-           String roundNumberStr = jedis.get("round_number");
+           String roundNumberStr = jedis.get("roundNumber");
            if (roundNumberStr == null) {
                // Handle the case where the round number is not set in Redis
                return -1;
@@ -145,7 +145,7 @@ public String[] getTrick() {
            ObjectMapper mapper = new ObjectMapper();
            
            String p1Json = jedis.get("p1");
-           boolean heartsBroken = Boolean.parseBoolean(jedis.get("Hearts_Broken"));
+           boolean heartsBroken = Boolean.parseBoolean(jedis.get("heartsBroken"));
            
            Player p1 = mapper.readValue(p1Json, Player.class);
            Card playedCard = p1.hand[index];
@@ -170,8 +170,8 @@ public String[] getTrick() {
                }
            }
    
-           // Update Hearts_Broken and turn in Redis
-           jedis.set("Hearts_Broken", String.valueOf(heartsBroken));
+           // Update heartsBroken and turn in Redis
+           jedis.set("heartsBroken", String.valueOf(heartsBroken));
            jedis.set("turn", String.valueOf(turn + 1));
    
            // Update trick in Redis
@@ -191,7 +191,7 @@ public String[] getTrick() {
     @GetMapping("/getTrickNumber")
     public Integer getTrickNumber() {
     try (Jedis jedis = jedisPool.getResource()) {
-        String trickNumberStr = jedis.get("trick_number");
+        String trickNumberStr = jedis.get("trickNumber");
         if (trickNumberStr != null) {
             return Integer.parseInt(trickNumberStr);
         } else {
@@ -218,8 +218,8 @@ public String[] getTrick() {
         ObjectMapper mapper = new ObjectMapper();
         String trickJson = jedis.get("trick");
         Card[] trick = mapper.readValue(trickJson, Card[].class);
-        String heartsBrokenJson = jedis.get("Hearts_Broken");
-        boolean Hearts_Broken = Boolean.parseBoolean(heartsBrokenJson);
+        String heartsBrokenJson = jedis.get("heartsBroken");
+        boolean heartsBroken = Boolean.parseBoolean(heartsBrokenJson);
         String gameState = jedis.get("gameState");
         String p1Json = jedis.get("p1");
         String p2Json = jedis.get("p2");
@@ -231,10 +231,10 @@ public String[] getTrick() {
         Player p4 = mapper.readValue(p4Json, Player.class);
         String turnJson = jedis.get("turn");
         int turn = Integer.parseInt(turnJson);
-        String trickNumberJson = jedis.get("trick_number");
-        int trick_number = Integer.parseInt(trickNumberJson);
+        String trickNumberJson = jedis.get("trickNumber");
+        int trickNumber = Integer.parseInt(trickNumberJson);
 
-       if(trick_number == 13){
+       if(trickNumber == 13){
            gameState = "End";
            return null;
        }
@@ -257,11 +257,11 @@ public String[] getTrick() {
            boolean possible_play = false;
            
            if(num == 0){     
-               if(trick_number == 0){
+               if(trickNumber == 0){
                    valid[0] = true;
                    return valid;
                }  
-               if(Hearts_Broken == true){
+               if(heartsBroken == true){
                    for(int i = 0;i<13;i++){
                        if(p1.hand[i]!=null){
                            valid[i] = true;       
@@ -303,33 +303,33 @@ public String[] getTrick() {
            return valid;
        }
        else if(turn == 2){
-           played = p2.play_card(trick, num, Hearts_Broken, trick_number);
+           played = p2.play_card(trick, num, heartsBroken, trickNumber);
            play = p2.hand[played];
            turn = 3;
            p2.hand[played] = null;
        }
        else if(turn == 3){   
-           played = p3.play_card(trick, num, Hearts_Broken, trick_number);
+           played = p3.play_card(trick, num, heartsBroken, trickNumber);
            play = p3.hand[played];
            turn = 4;
            p3.hand[played] = null;
        }
        else{ 
-           played = p4.play_card(trick, num, Hearts_Broken, trick_number);
+           played = p4.play_card(trick, num, heartsBroken, trickNumber);
            play = p4.hand[played];
            turn = 1;
            p4.hand[played] = null;
        }
        if(play.suit_char == 'h'){
-           Hearts_Broken = true;
+           heartsBroken = true;
        }
-       jedis.set("Hearts_Broken", String.valueOf(Hearts_Broken));
+       jedis.set("heartsBroken", String.valueOf(heartsBroken));
        jedis.set("p1", mapper.writeValueAsString(p1));
        jedis.set("p2", mapper.writeValueAsString(p2));
        jedis.set("p3", mapper.writeValueAsString(p3));
        jedis.set("p4", mapper.writeValueAsString(p4));
        jedis.set("turn", String.valueOf(turn));
-       jedis.set("trick_number", String.valueOf(trick_number));
+       jedis.set("trickNumber", String.valueOf(trickNumber));
        jedis.set("gameState", gameState);
        jedis.set("trick", mapper.writeValueAsString(trick));
    return null;
@@ -351,7 +351,7 @@ public String[] getTrick() {
 public void clearTrick() {
     try (Jedis jedis = jedisPool.getResource()) {
         ObjectMapper mapper = new ObjectMapper();
-        String trickNumberStr = jedis.get("trick_number");
+        String trickNumberStr = jedis.get("trickNumber");
         int trickNumber = trickNumberStr != null ? Integer.parseInt(trickNumberStr) : 0;
 
         Player p1 = null;
@@ -410,7 +410,7 @@ public void clearTrick() {
         }
         gameState = "Scoring";
         
-        jedis.set("trick_number", Integer.toString(trickNumber));
+        jedis.set("trickNumber", Integer.toString(trickNumber));
         jedis.set("gameState", gameState);
         jedis.set("turn", Integer.toString(turn));
         jedis.set("p1", mapper.writeValueAsString(p1));
@@ -438,8 +438,8 @@ public void clearTrick() {
            Player p3 = mapper.readValue(jedis.get("p3"), Player.class);
            Player p4 = mapper.readValue(jedis.get("p4"), Player.class);
            int turn = Integer.parseInt(jedis.get("turn"));
-           int roundNumber = Integer.parseInt(jedis.get("round_number"));
-           int trickNumber = Integer.parseInt(jedis.get("trick_number"));
+           int roundNumber = Integer.parseInt(jedis.get("roundNumber"));
+           int trickNumber = Integer.parseInt(jedis.get("trickNumber"));
            boolean heartsBroken = Boolean.parseBoolean(jedis.get("heartsBroken"));
            Card[] trick = mapper.readValue(jedis.get("trick"), Card[].class);
            Boolean[] validCard = mapper.readValue(jedis.get("validCard"), Boolean[].class);
@@ -473,8 +473,8 @@ public void clearTrick() {
            jedis.set("p3", mapper.writeValueAsString(p3));
            jedis.set("p4", mapper.writeValueAsString(p4));
            jedis.set("turn", Integer.toString(turn));
-           jedis.set("round_number", Integer.toString(roundNumber));
-           jedis.set("trick_number", Integer.toString(trickNumber));
+           jedis.set("roundNumber", Integer.toString(roundNumber));
+           jedis.set("trickNumber", Integer.toString(trickNumber));
            jedis.set("heartsBroken", Boolean.toString(heartsBroken));
            jedis.set("trick", mapper.writeValueAsString(trick));
            jedis.set("validCard", mapper.writeValueAsString(validCard));
@@ -500,7 +500,7 @@ public void clearTrick() {
            Player p2 = mapper.readValue(jedis.get("p2"), Player.class);
            Player p3 = mapper.readValue(jedis.get("p3"), Player.class);
            Player p4 = mapper.readValue(jedis.get("p4"), Player.class);
-           String trickNumberString = jedis.get("trick_number");
+           String trickNumberString = jedis.get("trickNumber");
            int trickNumber = Integer.parseInt(trickNumberString);
    
            if(trickNumber == 13){
@@ -577,7 +577,7 @@ public void clearTrick() {
                 p2 = mapper.readValue(jedis.get("p2"), Player.class);
                 p3 = mapper.readValue(jedis.get("p3"), Player.class);
                 p4 = mapper.readValue(jedis.get("p4"), Player.class);
-                round = Integer.parseInt(jedis.get("round_number"));
+                round = Integer.parseInt(jedis.get("roundNumber"));
                 turn = Integer.parseInt(jedis.get("turn"));   
             } catch (Exception e) {
                 System.out.println("Exception while getting players and round number from Redis: " + e.getMessage());
@@ -624,7 +624,7 @@ public void clearTrick() {
                 jedis.set("p2", mapper.writeValueAsString(p2));
                 jedis.set("p3", mapper.writeValueAsString(p3));
                 jedis.set("p4", mapper.writeValueAsString(p4));
-                jedis.set("round_number", Integer.toString(round));
+                jedis.set("roundNumber", Integer.toString(round));
                 jedis.set("turn", Integer.toString(turn));
             } catch (Exception e) {
                 System.out.println("Exception while setting updated players and round number to Redis: " + e.getMessage());
@@ -677,8 +677,8 @@ public void clearTrick() {
             jedis.set("p3", mapper.writeValueAsString(p3));
             jedis.set("p4", mapper.writeValueAsString(p4));
             jedis.set("turn", Integer.toString(turn));
-            jedis.set("round_number", Integer.toString(roundNumber));
-            jedis.set("trick_number", Integer.toString(trickNumber));
+            jedis.set("roundNumber", Integer.toString(roundNumber));
+            jedis.set("trickNumber", Integer.toString(trickNumber));
             jedis.set("gameState", gameState);
             jedis.set("trick", mapper.writeValueAsString(trick));
             jedis.set("validCard", mapper.writeValueAsString(validCard));
