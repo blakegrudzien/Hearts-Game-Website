@@ -117,7 +117,7 @@ public String[] getTrick() {
      */
    // @CrossOrigin(origins = "http://localhost:3000")
    @GetMapping("/getRoundNumber")
-   public int getroundNumber() {
+   public int getRoundNumber() {
        try (Jedis jedis = jedisPool.getResource()) {
            String roundNumberStr = jedis.get("roundNumber");
            if (roundNumberStr == null) {
@@ -189,7 +189,7 @@ public String[] getTrick() {
      */
     //@CrossOrigin(origins = "http://localhost:3000")
     @GetMapping("/getTrickNumber")
-    public Integer gettrickNumber() {
+    public Integer getTrickNumber() {
     try (Jedis jedis = jedisPool.getResource()) {
         String trickNumberStr = jedis.get("trickNumber");
         if (trickNumberStr != null) {
@@ -536,6 +536,7 @@ public void clearTrick() {
                p3.score = 0;
                p4.score = 0;
            }
+           gameState = "Play";
            scoreBoard[0] = p1.score + p1.overall_score;
            scoreBoard[1] = p2.score + p2.overall_score;
            scoreBoard[2] = p3.score + p3.overall_score;
@@ -546,7 +547,7 @@ public void clearTrick() {
            jedis.set("p3", mapper.writeValueAsString(p3));
            jedis.set("p4", mapper.writeValueAsString(p4));
    
-           jedis.set("gameState", "Play");  // Update the gameState in Redis
+           jedis.set("gameState", gameState);  // Update the gameState in Redis
        } catch (Exception e) {
            System.out.println("Exception while getting scores from Redis: " + e.getMessage());
        }
