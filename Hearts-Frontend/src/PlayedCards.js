@@ -68,8 +68,10 @@ const PlayedCards = ({ setGameState, gameState, turn , setTurn}) => {
       console.log("Gamestate is now Turn: " + turn + " GameState: " + gameState);
 
       if (gameState === "Play" && turn !== 1) {
+        console.log("about to play card with Turn: " + turn + " GameState: " + gameState);
         await playCard();
         console.log("just played card with Turn: " + turn + " GameState: " + gameState);
+        
 
         printTrick();
       }
