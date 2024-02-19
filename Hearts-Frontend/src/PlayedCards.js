@@ -69,6 +69,7 @@ const PlayedCards = ({ setGameState, gameState, turn , setTurn}) => {
       const response = await fetch(`${API_URL}/getGameState`);
       const newstate = await response.text();
       setGameState(newstate);
+      console.log("after setting gamestate:  turn:" , turn , "gameState:" , gameState)
     };
   
     fetchData();
