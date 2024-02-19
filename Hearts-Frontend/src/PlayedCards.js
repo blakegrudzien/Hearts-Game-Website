@@ -64,6 +64,15 @@ const PlayedCards = ({ setGameState, gameState, turn , setTurn}) => {
  */
   useEffect(() => {
     console.log("turn:" , turn , "gameState:" , gameState)
+  
+    const fetchData = async () => {
+      const response = await fetch(`${API_URL}/getGameState`);
+      const newstate = await response.json();
+      setGameState(newstate);
+    };
+  
+    fetchData();
+  
     const playAndPrint = async () => {
       if (gameState === "Play" && turn !== 1) {
         await playCard();
