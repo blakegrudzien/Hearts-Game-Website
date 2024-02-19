@@ -116,7 +116,7 @@ public String[] getTrick() {
      * This function fetches the round number from redis then sends it to the frontend
      */
    // @CrossOrigin(origins = "http://localhost:3000")
-   @GetMapping("/getroundNumber")
+   @GetMapping("/getRoundNumber")
    public int getroundNumber() {
        try (Jedis jedis = jedisPool.getResource()) {
            String roundNumberStr = jedis.get("roundNumber");
@@ -189,7 +189,7 @@ public String[] getTrick() {
      */
     //@CrossOrigin(origins = "http://localhost:3000")
     @GetMapping("/getTrickNumber")
-    public Integer getTrickNumber() {
+    public Integer gettrickNumber() {
     try (Jedis jedis = jedisPool.getResource()) {
         String trickNumberStr = jedis.get("trickNumber");
         if (trickNumberStr != null) {
