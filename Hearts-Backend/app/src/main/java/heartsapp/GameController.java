@@ -348,7 +348,7 @@ public String[] getTrick() {
 
     //@CrossOrigin(origins = "http://localhost:3000")
     @PostMapping("/clearTrick")
-public void clearTrick() {
+public synchronized void clearTrick() {
     try (Jedis jedis = jedisPool.getResource()) {
         ObjectMapper mapper = new ObjectMapper();
         String trickNumberStr = jedis.get("trickNumber");

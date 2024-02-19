@@ -65,13 +65,10 @@ const PlayedCards = ({ setGameState, gameState, turn , setTurn}) => {
   useEffect(() => {
     console.log("Turn: " + turn + " GameState: " + gameState);
     const playAndPrint = async () => {
-      console.log("Gamestate is now Turn: " + turn + " GameState: " + gameState);
-
       if (gameState === "Play" && turn !== 1) {
         console.log("about to play card with Turn: " + turn + " GameState: " + gameState);
         await playCard();
         console.log("just played card with Turn: " + turn + " GameState: " + gameState);
-        
 
         printTrick();
       }
@@ -93,7 +90,7 @@ const PlayedCards = ({ setGameState, gameState, turn , setTurn}) => {
       
       setCardUrls(trick);  // Store the trick in the cardUrls state
 
-      console.log("Trick length:" + trick.length);
+      console.log("trick: " + trick.length);
    
 
       if(trick.length === 4){
