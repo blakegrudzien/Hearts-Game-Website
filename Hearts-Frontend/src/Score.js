@@ -30,6 +30,7 @@ function Score({ gameState, setGameState }) {
       }
       setRoundFinished(false);
       setGameState("Swap");
+      console.log('New round started and gamestate set to swap');
     } catch (error) {
       console.error('Error:', error);
     }
