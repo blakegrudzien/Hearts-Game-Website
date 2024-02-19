@@ -28,8 +28,8 @@ function Score({ gameState, setGameState }) {
       if (!response.ok) {
         throw new Error('HTTP error ' + response.status);
       }
-      setRoundFinished(false);
-      setGameState("Swap");
+      await setRoundFinished(false);
+      await setGameState("Swap");
       console.log('New round started and gamestate set to swap');
     } catch (error) {
       console.error('Error:', error);

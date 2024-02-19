@@ -65,6 +65,8 @@ const PlayedCards = ({ setGameState, gameState, turn , setTurn}) => {
   useEffect(() => {
     console.log("Turn: " + turn + " GameState: " + gameState);
     const playAndPrint = async () => {
+      console.log("Gamestate is now Turn: " + turn + " GameState: " + gameState);
+
       if (gameState === "Play" && turn !== 1) {
         await playCard();
         console.log("just played card with Turn: " + turn + " GameState: " + gameState);
