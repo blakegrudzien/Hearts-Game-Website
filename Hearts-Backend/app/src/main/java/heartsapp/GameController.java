@@ -545,7 +545,7 @@ public void clearTrick() {
            jedis.set("p3", mapper.writeValueAsString(p3));
            jedis.set("p4", mapper.writeValueAsString(p4));
    
-           jedis.set("gameState", "Swap");  // Update the gameState in Redis
+           jedis.set("gameState", "Play");  // Update the gameState in Redis
        } catch (Exception e) {
            System.out.println("Exception while getting scores from Redis: " + e.getMessage());
        }
