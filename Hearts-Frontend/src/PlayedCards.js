@@ -67,6 +67,8 @@ const PlayedCards = ({ setGameState, gameState, turn , setTurn}) => {
     const playAndPrint = async () => {
       if (gameState === "Play" && turn !== 1) {
         await playCard();
+        console.log("just played card with Turn: " + turn + " GameState: " + gameState);
+
         printTrick();
       }
       fetchTurn();
