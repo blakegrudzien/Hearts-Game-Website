@@ -129,7 +129,7 @@ while(this.hand[min] == null){
         
         
         int i = 0;
-        boolean valid = false;
+       
         int min_val = 15;
 
         if(cards_played == 0){
