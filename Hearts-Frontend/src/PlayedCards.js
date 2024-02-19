@@ -63,17 +63,7 @@ const PlayedCards = ({ setGameState, gameState, turn , setTurn}) => {
  * turn, by calling the playCard function and then printing the trick
  */
   useEffect(() => {
-    console.log("turn:" , turn , "gameState:" , gameState)
-  
-    const fetchData = async () => {
-      const response = await fetch(`${API_URL}/getGameState`);
-      const newstate = await response.text();
-      setGameState(newstate);
-      console.log("after setting gamestate:  turn:" , turn , "gameState:" , gameState)
-    };
-  
-    fetchData();
-  
+    console.log("Turn: " + turn + " GameState: " + gameState);
     const playAndPrint = async () => {
       if (gameState === "Play" && turn !== 1) {
         await playCard();

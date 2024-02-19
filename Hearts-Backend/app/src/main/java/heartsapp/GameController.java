@@ -429,7 +429,7 @@ public void clearTrick() {
      */
    // @CrossOrigin(origins = "http://localhost:3000")
    @PostMapping("/startNewRound")
-   public void startNewRound() {
+   public synchronized void startNewRound() {
         System.out.println("Starting a new round");
        try (Jedis jedis = jedisPool.getResource()) {
            ObjectMapper mapper = new ObjectMapper();
